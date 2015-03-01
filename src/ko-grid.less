@@ -1,0 +1,51 @@
+﻿// TODO extract to separate less file
+@border-color: #E5E5E5;
+@header-background-color: #F6F6F6;
+@header-underline-color: #4495DA;
+@alternating-row-background-color: #F2F9FF;
+@hovering-row-background-color: #375880;
+
+// browser prefixes -.-
+.box-sizing(@box) { -webkit-box-sizing: @box; -moz-box-sizing: @box; box-sizing: @box; }
+.border-box() { .box-sizing(border-box); }
+.additive-vertical-gradient (@base, @gradient) {
+  background: @base -webkit-linear-gradient(bottom, @gradient);
+  background: @base -moz-linear-gradient(bottom, @gradient);
+  background: @base -ms-linear-gradient(bottom, @gradient);
+  background: @base -o-linear-gradient(bottom, @gradient);
+}
+
+.ko-grid { .border-box(); width: 100%; height: 100%; overflow: visible; }
+.ko-grid-table-container { position: relative; overflow: hidden; .border-box(); width: 100%; height: 100%; border-bottom: 0 solid transparent; }
+.ko-grid-table-scroller-padding { .border-box(); width: 100%; height: 100%; border-width: 0; overflow: hidden; }
+.ko-grid-table-scroller { width: 100%; height: 100%; overflow: auto; }
+.fixed-height > .ko-grid .ko-grid-table-scroller { overflow-y: scroll; }
+.ko-grid-table { table-layout: fixed; border-collapse: collapse; }
+.ko-grid-thead { position: absolute; top: 0; }
+.ko-grid-tfoot { position: absolute; bottom: 0; }
+.ko-grid-th, .ko-grid-td, .ko-grid-tf { .border-box(); overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+
+/* BORDER */
+.ko-grid { border: 1px solid @border-color; }
+.ko-grid-th, .ko-grid-td, .ko-grid-tf { border: 1px solid @border-color; }
+.ko-grid-tr:first-child .ko-grid-th { border-top-width: 0; }
+.ko-grid-th:first-child, .ko-grid-td:first-child, .ko-grid-tf:first-child { border-left-width: 0; }
+.ko-grid-th:last-child, .ko-grid-td:last-child, .ko-grid-tf:last-child { border-right-width: 0; }
+.ko-grid-column-header, .ko-grid-column-group-header { border-bottom: 2px solid @header-underline-color; }
+.ko-grid-tf { border-top-width: 0; border-bottom-width: 0; }
+.ko-grid-table-scroller-padding { margin-bottom: -1px; } /* cuts off the border of the last row TODO this should be solved differently */
+
+/* PADDING */
+.ko-grid-th, .ko-grid-td, .ko-grid-tf { padding: 2px 6px; }
+
+/* BACKGROUND */
+.ko-grid { background-color: white; }
+.ko-grid-table-scroller-padding { border-style: solid; border-top-color: @header-background-color; border-bottom-color: white; }
+.ko-grid-thead { background-color: @header-background-color; }
+.alternate.ko-grid-row { background-color: @alternating-row-background-color; }
+.ko-grid-row-hover-gradient (@base) { .additive-vertical-gradient(@base; fade(@hovering-row-background-color, 20%) 0, transparent 66%); }
+.ko-grid-row:hover { .ko-grid-row-hover-gradient(transparent); }
+.alternate.ko-grid-row:hover { .ko-grid-row-hover-gradient(@alternating-row-background-color); }
+
+/* ALIGNMENT */
+.ko-grid-column-header, .ko-grid-column-group-header { text-align: center; }

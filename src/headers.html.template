@@ -1,0 +1,12 @@
+<thead class="ko-grid-thead" data-bind="_gridWidth: columns._combinedWidthInPixels() + 'px'">
+    <!--before:thead-->
+    <tr class="ko-grid-tr ko-grid-headers"
+        data-bind="indexedRepeat: { forEach: headers.__rows, indexedBy: '__rowId', as: 'headerRow' }"
+        data-repeat-bind="click: headers.__handleClick">
+
+        <th class="ko-grid-th"
+            data-bind="indexedRepeat: { forEach: headerRow(), indexedBy: 'id', as: 'header' }"
+            data-repeat-bind="__gridHeader: header"></th>
+    </tr>
+    <!--after:thead-->
+</thead>

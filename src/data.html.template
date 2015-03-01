@@ -1,0 +1,18 @@
+<tbody class="ko-grid-tbody" data-bind="_gridWidth: columns._combinedWidthInPixels() + 'px'">
+    <!--before:tbody-->
+    <tr class="ko-grid-tr ko-grid-row"
+        data-bind="indexedRepeat: {
+            forEach: data.rows.displayed,
+            indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },
+            as: 'row',
+            at: 'rowIndex',
+            allowDeviation: true,
+            onDeviation: data.rows.__handleDisplayedRowsDeviate,
+            onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"
+        data-repeat-bind="__gridRow: { classify: grid.data.rows.__classify, row: row, index: rowIndex }">
+
+        <td data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: 'id', as: 'column', allowElementRecycling: false }"
+            data-repeat-bind="__gridCell: { row: row, column: column }"></td>
+    </tr>
+    <!--after:tbody-->
+</tbody>

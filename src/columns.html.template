@@ -1,0 +1,3 @@
+<colgroup class="ko-grid-colgroup">
+    <col class="ko-grid-col" data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: 'id', as: 'column' }" data-repeat-bind="__gridColumn: column()">
+</colgroup>

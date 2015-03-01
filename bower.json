@@ -1,0 +1,23 @@
+{
+  "name": "ko-grid",
+  "main": "dist/ko-grid.js",
+  "description": "An extensible UI component for displaying tabular data.",
+  "authors": ["Ben Schulz (https://github.com/benschulz)"],
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "grid",
+    "knockout"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/benschulz/ko-grid.git"
+  },
+  "dependencies": {
+    "knockout": "^3.0.0",
+    "ko-indexed-repeat": "benschulz/ko-indexed-repeat"
+  },
+  "devDependencies": {
+    "onefold-dom": "benschulz/onefold-dom",
+    "onefold-js": "benschulz/onefold-js"
+  }
+}
