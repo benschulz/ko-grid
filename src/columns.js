@@ -85,7 +85,8 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
 
             this.add = column => {
                 var viewModel = createColumn({
-                    'id': '#' + column.id,
+                    userDefined: false,
+                    'id': '$' + column.id,
                     'label': column.label,
                     'hidden': column.hidden || false,
                     'width': column.width
@@ -118,6 +119,8 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
         this['id'] = this.id;
         this.property = column['property'] || this.id;
         this['property'] = this.property;
+        this.userDefined = column.userDefined !== false;
+        this['userDefined'] = this.userDefined;
         this.__visible = !column['hidden'];
         this.visible = () => this.__visible;
         this['visible'] = this['visible'];
