@@ -24,6 +24,16 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
 
             this.predicates = ko.observableArray(bindingValue.filters || []);
             this['predicates'] = this.predicates;
+            this.predicate = ko.pureComputed(() => {
+                var predicates = this.predicates().map(ko.unwrap);
+                return row => {
+                    for (var i = 0; i < predicates.length; i++)
+                        if (!predicates[i](row))
+                            return false;
+                    return true;
+                };
+            });
+            this['predicate'] = this.predicate;
             this.comparator = ko.observable(INDIFFERENT_COMPARATOR);
             this['comparator'] = this.comparator;
             this.offset = ko.observable(0);
@@ -71,26 +81,10 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
     function initRows() {
         var disposables = [];
 
-        var predicate = ko.pureComputed(() => {
-            var predicates = this.predicates().map(ko.unwrap);
-            return row => {
-                for (var i = 0; i < predicates.length; i++)
-                    if (!predicates[i](row))
-                        return false;
-                return true;
-            };
-        });
-        var comparator = ko.pureComputed(() => this.comparator());
-
         var rows = {};
         this.rows = rows;
         this['rows'] = rows;
-        rows.all = ko.observableArray([]);
 
-        rows.filtered = ko.observableArray([]);
-        rows['filtered'] = rows.filtered;
-        rows.ordered = ko.observableArray([]);
-        rows['ordered'] = rows.ordered;
         rows.displayed = ko.observableArray([]);
         rows['displayed'] = rows.displayed;
 
@@ -102,22 +96,16 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
         this.__preApplyBindings(inner => {
             inner();
 
-            var allRows = this.source.openView();
-            var filteredView = allRows.filteredBy(predicate);
-            var orderedView = this.rows.__orderedView = filteredView.orderedBy(comparator);
-            var pageView = orderedView.clipped(this.offset, this.limit);
-            disposables.push(allRows, filteredView, orderedView, pageView);
+            var view = this.source.openView(q => q
+                .filteredBy(this.predicate)
+                .sortedBy(this.comparator)
+                .offsetBy(this.offset)
+                .limitedTo(this.limit));
+            disposables.push(view);
 
-            disposables.push(
-                allRows.values.subscribe(v => { this.rows.all(v); }),
-                filteredView.values.subscribe(v => { this.rows.filtered(v); }),
-                orderedView.values.subscribe(v => { this.rows.ordered(v); }),
-                pageView.observables.subscribe(v => { this.rows.displayed(v); }));
+            disposables.push(view.observables.subscribe(v => { this.rows.displayed(v); }));
 
-            rows.all(allRows.values());
-            rows.filtered(filteredView.values());
-            rows.ordered(orderedView.values());
-            rows.displayed(pageView.observables());
+            rows.displayed(view.observables());
         });
 
         var classifiers = [];
