@@ -73,15 +73,14 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
             };
             this['showOnlyThoseWhich'] = this.showOnlyThoseWhich;
 
-            this._combinedWidthInPixels = ko.computed(() => {
+            this.combinedWidth = ko.pureComputed(() => {
                 var sum = 0;
                 var displayed = this.displayed();
                 for (var i = 0; i < displayed.length; ++i)
                     sum += displayed[i].widthInPixels();
                 return sum;
             });
-            this['_combinedWidthInPixels'] = this._combinedWidthInPixels;
-            disposables.push(this._combinedWidthInPixels);
+            this['combinedWidth'] = this.combinedWidth;
 
             this.add = column => {
                 var viewModel = createColumn({

@@ -4,10 +4,10 @@
         <!--before:table-->
         <div class="ko-grid-table-scroller-padding">
             <div class="ko-grid-table-scroller">
-                <table class="ko-grid-table" data-bind="_gridWidth: columns._combinedWidthInPixels() + 'px'">
+                <table class="ko-grid-table" data-bind="_gridWidth: columns.combinedWidth() + 'px'">
                     <!--columns-->
                     <!--head-->
-                    <tfoot class="ko-grid-tfoot" data-bind="_gridWidth: columns._combinedWidthInPixels() + 'px'"><!--tfoot--></tfoot>
+                    <tfoot class="ko-grid-tfoot" data-bind="_gridWidth: columns.combinedWidth() + 'px'"><!--tfoot--></tfoot>
                     <!--body-->
                 </table>
             </div>
