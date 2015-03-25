@@ -1,6 +1,7 @@
 'use strict';
 
 define(['req', 'knockout', 'onefold-js', './template', './core', './extensions', 'text!ko-grid/grid.html.template', 'ko-indexed-repeat'], function (req, ko, js) {
+    var require = req;
     var document = window.document;
 
     var koGrid = ko.bindingHandlers['grid'] = ko.bindingHandlers['grid'] || {};
