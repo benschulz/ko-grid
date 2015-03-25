@@ -19,7 +19,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
         init: template => {
             template.replace('head').with(headersTemplate);
         },
-        Constructor: (bindingValue, config, grid) => {
+        Constructor: function (bindingValue, config, grid) {
             var invertedColumnGroups = invertColumnGroups(bindingValue['columnGroups'] || []);
 
             var columnGroupHeaders = {};

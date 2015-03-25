@@ -8,14 +8,13 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
     var document = window.document;
 
     var data = {
-        INDIFFERENT_COMPARATOR: INDIFFERENT_COMPARATOR,
-
         init: template => {
             template.into('body').insert(dataTemplate);
         },
-        Constructor: (bindingValue, config, grid) => {
+        Constructor: function (bindingValue, config, grid) {
             var disposeCallbacks = [];
 
+            /** @type {DataSource<?>} */
             this.source = bindingValue['dataSource'];
 
             this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || js.functions.identity;
@@ -48,8 +47,8 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
             };
 
             disposeCallbacks.push(initTbodyElement.call(this, grid));
-            disposeCallbacks.push(initRows.call(this, grid));
-            disposeCallbacks.push(initEventDispatching.call(this, grid));
+            disposeCallbacks.push(initRows.call(this));
+            disposeCallbacks.push(initEventDispatching.call(this));
             disposeCallbacks.push(initElementLookup.call(this, grid));
 
             this._dispose = () => {
@@ -221,7 +220,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
                     while (element.firstChild)
                         ko.removeNode(element.firstChild);
 
-                    var rowObservable = ko.contextFor(element).row();
+                    var rowObservable = ko.contextFor(element)['row']();
                     if (column._initCell)
                         column._initCell(element, rowObservable, column);
                     else

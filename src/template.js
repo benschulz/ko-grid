@@ -82,6 +82,11 @@ define([], function () {
             var replacement = replacementProducer(placeholder, replacementMarkup);
             configuredTemplate = configuredTemplate.replace(placeholder, replacement);
         };
+        /**
+         * @param {number} operator
+         * @param {function(string,string)=} replacementProducer
+         * @returns {Function}
+         */
         var createPlaceholderReplacementOperation = (operator, replacementProducer) => {
             replacementProducer = replacementProducer || ((p, m) => m + p);
 

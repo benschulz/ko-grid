@@ -5,7 +5,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
 
     var layout = {
         init: js.functions.nop,
-        Constructor: (bindingValue, config, grid) => {
+        Constructor: function (bindingValue, config, grid) {
             var recalculating = ko.observable(false);
 
             var recalculate = configuration => {
@@ -30,7 +30,8 @@ define(['knockout', 'onefold-js'], function (ko, js) {
             this._postApplyBindings = () => {
                 initScolling.call(this, grid);
                 recalculate = createLayoutRecalculator(grid, recalculating, beforeRelayoutHandlers, afterRelayoutHandlers);
-                recalculate();
+
+                grid.postApplyBindings(recalculate);
             };
 
             // TODO let caller specify cell type (header cell vs. data cell vs. footer cell as well as other classes)
@@ -55,7 +56,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
         }
     };
 
-    var initScolling = grid => {
+    var initScolling = function (grid) {
         var gridElement = grid.element;
         var scroller = gridElement.querySelector('.ko-grid-table-scroller');
         var thead = gridElement.querySelector('.ko-grid-thead');
@@ -109,9 +110,8 @@ define(['knockout', 'onefold-js'], function (ko, js) {
     };
 
     function withElementLayedOut(element, action) {
-        // This is a quick check to see if the element is layed out. The check assumes
-        // that neither the grid nor any of its containers has a fixed position.
-        if (element.offsetParent)
+        // This is a quick check to see if the element is layed out.
+        if (element.offsetWidth && element.offsetHeight)
             return action();
 
         var parent = element.parentNode;
