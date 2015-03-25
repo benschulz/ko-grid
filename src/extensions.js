@@ -8,6 +8,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
         if (js.objects.hasOwn(extensions, extensionId))
             throw new Error('Extension id or alias already in use: `' + extensionId + '`.');
         extensions[extensionId] = extension;
+        extension.__knownAliases.push(extensionId);
         return extension;
     }
 
@@ -17,18 +18,56 @@ define(['knockout', 'onefold-js'], function (ko, js) {
         return extensions[extensionId];
     }
 
-    grid.defineExtension = (extensionId, extensionSpec) => registerExtension(extensionId, new GridExtension(extensionSpec));
+    grid.defineExtension = (name, spec) => registerExtension(name, new GridExtension(name, spec));
 
     grid.lookUpExtension = lookUpExtension;
 
-    grid.declareExtensionAlias = (extensionAlias, extensionId) => registerExtension(extensionAlias, grid.lookUpExtension(extensionId));
+    grid.declareExtensionAlias = (alias, alreadyKnownAlias) => registerExtension(alias, grid.lookUpExtension(alreadyKnownAlias));
+    grid.declareExtensionAliases = (aliases, alreadyKnownAlias) => {
+        var extension = grid.lookUpExtension(alreadyKnownAlias);
+        aliases.forEach(a => registerExtension(a, extension));
+        return extension;
+    };
 
     /** @constructor */
-    function GridExtension(extensionSpec) {
-        this.dependencies = extensionSpec.dependencies || [];
-        this.initializer = extensionSpec.initializer || js.functions.nop;
-        this.Constructor = extensionSpec.Constructor;
+    function GridExtension(primaryName, spec) {
+        this.primaryName = primaryName;
+        this.dependencies = spec.dependencies || [];
+        this.initializer = spec.initializer || js.functions.nop;
+        this.Constructor = spec.Constructor;
+
+        this.__knownAliases = [];
     }
+
+    GridExtension.prototype = {
+        get knownAliases() { return this.__knownAliases.slice(); },
+
+        extractConfiguration: function (configurations, configName) {
+            var usedAlias = this.__determineUsedAlias(configurations, presentAliases => {
+                throw new Error('Conflicting configurations ' + presentAliases.map(c => '`' + c + '`').join(', ') + ' (configuration: `' + configName + '`).');
+            });
+
+            if (!usedAlias)
+                throw new Error('The extension `' + this.primaryName + '` must be configured (configuration: `' + configName + '`)');
+
+            return configurations[usedAlias];
+        },
+        tryExtractBindingValue: function (bindingValues) {
+            var usedAlias = this.__determineUsedAlias(bindingValues, presentAliases => {
+                throw new Error('Conflicting binding values ' + presentAliases.map(c => '`' + c + '`').join(', ') + '.');
+            });
+
+            return bindingValues[usedAlias];
+        },
+        __determineUsedAlias: function (object, dieDueToAmbiguity) {
+            var presentAliases = this.__knownAliases.filter(a=> js.objects.hasOwn(object, a));
+
+            if (presentAliases.length > 1)
+                dieDueToAmbiguity(presentAliases);
+
+            return presentAliases[0];
+        }
+    };
 
     return extensions;
 });

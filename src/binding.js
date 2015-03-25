@@ -50,7 +50,9 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
 
     ko.bindingHandlers['grid']['init'] = function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var bindingValue = valueAccessor();
-        loadConfig(bindingValue['config'], function (config, templateName, extensionLoadOrder) {
+        var configName = bindingValue['config'];
+
+        loadConfig(configName, function (config, templateName, extensionLoadOrder) {
             var disposeCallbacks = [];
             var grid = new Grid(element, bindingValue);
             ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
@@ -71,14 +73,14 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
                     disposeCallbacks.push(instance._dispose.bind(instance));
             });
 
-            var configExtensions = config['extensions'];
-            var bindingExtensions = bindingValue['extensions'];
-            var gridExtensions = grid['extensions'] = {};
+            var extensionConfigs = config['extensions'];
+            var extensionBindingValues = bindingValue['extensions'] || {};
+            var gridExtensions = grid['extensions'] = grid.extensions = {};
 
             extensionLoadOrder.forEach(function (extensionName) {
                 var extension = koGrid.lookUpExtension(extensionName);
-                var extensionConfig = configExtensions[extensionName];
-                var extensionBindingValue = bindingExtensions ? bindingExtensions[extensionName] || {} : {};
+                var extensionConfig = extension.extractConfiguration(extensionConfigs, configName);
+                var extensionBindingValue = extension.tryExtractBindingValue(extensionBindingValues) || {};
 
                 if (extensionConfig['enabled'] === false && extensionBindingValue['enabled'] !== true || extensionBindingValue['enabled'] === false)
                     return;
@@ -88,7 +90,9 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
                 });
 
                 var instance = new extension.Constructor(extensionBindingValue, extensionConfig, grid, bindingValue, config);
-                gridExtensions[extensionName] = instance;
+                extension.knownAliases.forEach(alias => {
+                    gridExtensions[alias] = instance;
+                });
                 if (typeof instance.dispose === 'function')
                     disposeCallbacks.push(instance.dispose.bind(instance));
             });
@@ -108,7 +112,7 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
             grid.element = gridElement;
             grid['element'] = gridElement;
 
-            js.objects.forEachProperty(configExtensions, function (extensionName) {
+            js.objects.forEachProperty(extensionConfigs, function (extensionName) {
                 gridElement.className += ' with-' + js.strings.convertCamelToHyphenCase(extensionName);
             });
 
@@ -139,32 +143,30 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
             var template = new GridTemplate(tableTemplate);
             coreComponents.forEach(function (component) { component.init(template, config); });
 
-            var configExtensions = config['extensions'];
+            var extensionConfigs = config['extensions'];
             var loadedExtensions = [];
             var loadingExtensions = [];
             var loadExtension = function (extensionName) {
                 var extension = koGrid.lookUpExtension(extensionName);
+                var primaryExtensionName = extension.primaryName;
+                var extensionConfig = extension.extractConfiguration(extensionConfigs, configName);
 
-                if (js.arrays.contains(loadedExtensions, extensionName))
+                if (js.arrays.contains(loadedExtensions, primaryExtensionName))
                     return;
-                if (!extension)
-                    throw new Error('Extension  \'' + extensionName + '\' is not defined/loaded.');
-                if (js.arrays.contains(loadingExtensions, extensionName))
-                    throw new Error('Dependency-Cycle: .. -> ' + loadingExtensions.join(' -> ') + ' -> ' + extensionName + ' -> ..');
-                if (!configExtensions[extensionName])
-                    throw new Error('The extension \'' + extensionName + '\' must be configured (configuration: \'' + configName + '\')');
+                if (js.arrays.contains(loadingExtensions, primaryExtensionName))
+                    throw new Error('Dependency-Cycle: .. -> ' + loadingExtensions.join(' -> ') + ' -> ' + primaryExtensionName + ' -> ..');
 
-                loadingExtensions.push(extensionName);
+                loadingExtensions.push(primaryExtensionName);
                 extension.dependencies.forEach(loadExtension);
-                extension.initializer(template, configExtensions[extensionName], config);
+                extension.initializer(template, extensionConfig, config);
 
-                if (loadingExtensions.pop() !== extensionName)
+                if (loadingExtensions.pop() !== primaryExtensionName)
                     throw new Error('Assertion error.');
-                loadedExtensions.push(extensionName);
+                loadedExtensions.push(primaryExtensionName);
             };
-            js.objects.forEachProperty(configExtensions, loadExtension);
+            Object.keys(extensionConfigs).forEach(loadExtension);
 
-            var templateName = 'grid-template-' + configName;
+            var templateName = 'ko-grid-template-' + configName;
             templateEngine.addTemplate(templateName, template.build());
             loadedConfigs[configName] = {
                 config: config,
