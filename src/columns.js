@@ -23,7 +23,7 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
             this.byId = id => {
                 var column = this.tryById(id);
                 if (!column)
-                    throw new Error('The column id `' + id + '` is already taken.');
+                    throw new Error('The column id `' + id + '` is undefined.');
                 return column;
             };
             this['byId'] = this.byId;
