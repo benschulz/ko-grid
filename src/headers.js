@@ -1,7 +1,8 @@
 'use strict';
 
 define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-grid/headers.html.template'], function (ko, js, ApplicationEventDispatcher, headersTemplate) {
-    var document = window.document;
+    var document = window.document,
+        Node = window.Node;
 
     function columnHeaderId(column) {
         return 'column-header-' + column.id;
@@ -238,9 +239,14 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
             header.element(element);
             ko.utils.domNodeDisposal.addDisposeCallback(element, () => { header.element(null); });
 
-            while (element.firstChild)
-                ko.removeNode(element.firstChild);
-            element.appendChild(document.createTextNode(''));
+            var child = element.firstChild;
+            while (child) {
+                var c = child;
+                if (c.nodeType === Node.TEXT_NODE)
+                    ko.removeNode(c);
+                child = child.nextSibling;
+            }
+            element.insertBefore(document.createTextNode(''), element.firstChild);
 
             return {'controlsDescendantBindings': true};
         },
@@ -259,7 +265,11 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
             element.style.maxWidth = width;
             element.rowSpan = header.rowSpan();
             element.colSpan = header.columnSpan();
-            element.firstChild.nodeValue = header.label();
+
+            var child = element.firstChild;
+            while (child.nodeType !== Node.TEXT_NODE)
+                child = child.nextSibling;
+            child.nodeValue = header.label();
         }
     };
 
