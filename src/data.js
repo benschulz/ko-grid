@@ -137,45 +137,45 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
     }
 
     function initEventDispatching() {
-       var dispatchVia = dispatcher => {
-           return event => {
-               dispatcher.relativeToClosest('.ko-grid-cell').dispatch(event);
-               return !event.defaultPrevented;
-           };
-       };
+        var dispatchVia = dispatcher => {
+            return event => {
+                dispatcher.relativeToClosest('.ko-grid-cell').dispatch(event);
+                return !event.defaultPrevented;
+            };
+        };
 
-       var argumentsSupplier = (event, cellElement) => {
-           var context = ko.contextFor(cellElement);
-           var row = context['row']();
-           var column = context['column']();
-           var cell = row[column.property];
+        var argumentsSupplier = (event, cellElement) => {
+            var context = ko.contextFor(cellElement);
+            var row = context['row']();
+            var column = context['column']();
+            var cell = row[column.property];
 
-           return [event, cell, row, column];
-       };
+            return [event, cell, row, column];
+        };
 
-       var onMouseDownDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
-       var onClickDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
-       var onDoubleClickDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
-       var onContextMenuDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
-       this.onCellMouseDown = onMouseDownDispatcher.registerHandler.bind(onMouseDownDispatcher);
-       this.onCellClick = onClickDispatcher.registerHandler.bind(onClickDispatcher);
-       this.onCellDoubleClick = onDoubleClickDispatcher.registerHandler.bind(onDoubleClickDispatcher);
-       this.onCellContextMenu = onContextMenuDispatcher.registerHandler.bind(onContextMenuDispatcher);
-       this['onCellMouseDown '] = this.onCellMouseDown;
-       this['onCellClick '] = this.onCellClick;
-       this['onCellDoubleClick '] = this.onCellDoubleClick;
-       this['onCellContextMenu '] = this.onCellContextMenu;
+        var onMouseDownDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
+        var onClickDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
+        var onDoubleClickDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
+        var onContextMenuDispatcher = new ApplicationEventDispatcher(argumentsSupplier);
+        this.onCellMouseDown = onMouseDownDispatcher.registerHandler.bind(onMouseDownDispatcher);
+        this.onCellClick = onClickDispatcher.registerHandler.bind(onClickDispatcher);
+        this.onCellDoubleClick = onDoubleClickDispatcher.registerHandler.bind(onDoubleClickDispatcher);
+        this.onCellContextMenu = onContextMenuDispatcher.registerHandler.bind(onContextMenuDispatcher);
+        this['onCellMouseDown '] = this.onCellMouseDown;
+        this['onCellClick '] = this.onCellClick;
+        this['onCellDoubleClick '] = this.onCellDoubleClick;
+        this['onCellContextMenu '] = this.onCellContextMenu;
 
-       this.__postApplyBindings(inner => {
-           inner();
-           this.__tbodyElement.addEventListener('mousedown', dispatchVia(onMouseDownDispatcher));
-           this.__tbodyElement.addEventListener('click', dispatchVia(onClickDispatcher));
-           this.__tbodyElement.addEventListener('dblclick', dispatchVia(onDoubleClickDispatcher));
-           this.__tbodyElement.addEventListener('contextmenu', dispatchVia(onContextMenuDispatcher));
-       });
+        this.__postApplyBindings(inner => {
+            inner();
+            this.__tbodyElement.addEventListener('mousedown', dispatchVia(onMouseDownDispatcher));
+            this.__tbodyElement.addEventListener('click', dispatchVia(onClickDispatcher));
+            this.__tbodyElement.addEventListener('dblclick', dispatchVia(onDoubleClickDispatcher));
+            this.__tbodyElement.addEventListener('contextmenu', dispatchVia(onContextMenuDispatcher));
+        });
 
-       return js.functions.nop;
-   }
+        return js.functions.nop;
+    }
 
     function initElementLookup(grid) {
         var nthRowElement = n => {
