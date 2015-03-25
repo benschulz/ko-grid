@@ -130,6 +130,7 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
     };
     ko.bindingHandlers['grid']['update'] = js.functions.nop;
 
+    // TODO extract into own file
     var loadedConfigs = {};
     var loadConfig = function (configName, handler) {
         function callHandler() {
