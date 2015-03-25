@@ -11,7 +11,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
         INDIFFERENT_COMPARATOR: INDIFFERENT_COMPARATOR,
 
         init: template => {
-            template.replace('body').with(dataTemplate);
+            template.into('body').insert(dataTemplate);
         },
         Constructor: (bindingValue, config, grid) => {
             var disposeCallbacks = [];
