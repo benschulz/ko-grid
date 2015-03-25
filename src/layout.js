@@ -56,7 +56,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
     };
 
     var initScolling = grid => {
-        var gridElement = grid._rootElement.querySelector('.ko-grid');
+        var gridElement = grid.element;
         var scroller = gridElement.querySelector('.ko-grid-table-scroller');
         var thead = gridElement.querySelector('.ko-grid-thead');
         var tfoot = gridElement.querySelector('.ko-grid-tfoot');
@@ -69,7 +69,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
     };
 
     var createLayoutRecalculator = (grid, recalculating, beforeRelayoutHandlers, afterRelayoutHandlers) => {
-        var gridElement = grid._rootElement.querySelector('.ko-grid');
+        var gridElement = grid.element;
         var spacer = gridElement.querySelector('.ko-grid-table-scroller-padding');
         var scroller = gridElement.querySelector('.ko-grid-table-scroller');
         var thead = gridElement.querySelector('.ko-grid-thead');

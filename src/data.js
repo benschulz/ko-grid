@@ -63,7 +63,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
     function initTbodyElement(grid) {
         this.__postApplyBindings(inner => {
             inner();
-            this.__tbodyElement = grid._rootElement.querySelector('.ko-grid-tbody');
+            this.__tbodyElement = grid.element.querySelector('.ko-grid-tbody');
         });
 
         return () => { this.__tbodyElement = null; };

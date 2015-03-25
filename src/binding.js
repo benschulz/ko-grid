@@ -23,12 +23,13 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
         document.querySelector('head').appendChild(template);
     };
 
-    function Grid(element, bindingValue) {
-        this.elementId = element.id;
-        this['elementId'] = this.elementId;
+    function Grid(rootElement, bindingValue) {
         this.primaryKey = bindingValue['primaryKey'];
         this['primaryKey'] = this.primaryKey;
-        this._rootElement = element;
+        this.rootElement = rootElement;
+        this['rootElement'] = rootElement;
+        this.element = null;
+        this['element'] = null;
         this._classes = ko.observableArray([]);
         this._dispose = js.functions.nop;
     }
@@ -90,6 +91,9 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
             ko.renderTemplate(templateName, gridContext, {'templateEngine': templateEngine}, element);
 
             var gridElement = element.querySelector('.ko-grid');
+            grid.element = gridElement;
+            grid['element'] = gridElement;
+
             js.objects.forEachProperty(configExtensions, function (extensionName) {
                 gridElement.className += ' with-' + js.strings.convertCamelToHyphenCase(extensionName);
             });
