@@ -33,6 +33,19 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
         this['element'] = null;
         this._classes = ko.observableArray([]);
         this._dispose = js.functions.nop;
+
+        this.__postApplyBindings = js.functions.nop;
+
+        this.postApplyBindings = callback => {
+            if (!this.__postApplyBindings)
+                throw new Error('Illegal state: postApplyBindings-callbacks have been called already.');
+
+            var innerCallback = this.__postApplyBindings;
+            this.__postApplyBindings = () => {
+                innerCallback();
+                callback();
+            };
+        };
     }
 
     ko.bindingHandlers['grid']['init'] = function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
@@ -103,6 +116,9 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
                 if (grid[n]._postApplyBindings)
                     grid[n]._postApplyBindings();
             });
+
+            grid.__postApplyBindings();
+            grid.__postApplyBindings = null;
         });
 
         return {'controlsDescendantBindings': true};
