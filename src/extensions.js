@@ -23,6 +23,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
 
     grid.declareExtensionAlias = (extensionAlias, extensionId) => registerExtension(extensionAlias, grid.lookUpExtension(extensionId));
 
+    /** @constructor */
     function GridExtension(extensionSpec) {
         this.dependencies = extensionSpec.dependencies || [];
         this.initializer = extensionSpec.initializer || js.functions.nop;

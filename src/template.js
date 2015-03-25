@@ -14,6 +14,7 @@ define([], function () {
     var OPERATOR_TO_APPEND = 5;
     var OPERATOR_TO_PREPEND = 6;
 
+    /** @constructor */
     // TODO eliminate mutation, move towards returning a new template at each step
     function GridTemplate(initialMarkup) {
         var placeholders = {};

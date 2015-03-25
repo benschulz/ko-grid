@@ -23,6 +23,7 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
         document.querySelector('head').appendChild(template);
     };
 
+    /** @constructor */
     function Grid(rootElement, bindingValue) {
         this.primaryKey = bindingValue['primaryKey'];
         this['primaryKey'] = this.primaryKey;

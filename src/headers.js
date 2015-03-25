@@ -142,6 +142,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
         }
     };
 
+    /** @constructor */
     function ColumnHeader(column) {
         this.id = columnHeaderId(column);
         this['id'] = this.id;
@@ -163,6 +164,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
         };
     }
 
+    /** @constructor */
     function ColumnGroupHeader(columnGroup) {
         this.id = columnGroupHeaderId(columnGroup);
         this['id'] = this.id;

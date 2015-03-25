@@ -1,6 +1,7 @@
 'use strict';
 
 define(['onefold-js', 'onefold-dom'], function (js, dom) {
+    /** @constructor */
     function ApplicationEvent(originalEvent) {
         var applicationDefaultPrevented = originalEvent.defaultPrevented;
 
@@ -18,12 +19,14 @@ define(['onefold-js', 'onefold-dom'], function (js, dom) {
         });
     }
 
+    /** @constructor */
     function ApplicationEventHandler(handler, selector) {
         this.handler = handler;
         this.selector = selector;
     }
 
-    return function ApplicationEventDispatcher(argumentsSupplier) {
+    /** @constructor */
+     function ApplicationEventDispatcher(argumentsSupplier) {
         argumentsSupplier = argumentsSupplier || (event => [event]);
 
         var handlers = [];
@@ -73,5 +76,7 @@ define(['onefold-js', 'onefold-dom'], function (js, dom) {
                 h.handler.apply(root, handlerArguments);
             });
         }
-    };
+    }
+
+    return ApplicationEventDispatcher;
 });

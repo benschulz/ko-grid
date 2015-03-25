@@ -114,6 +114,7 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
         }
     };
 
+    /** @constructor */
     function Column(grid, gridConfig, column) {
         this.id = column['id'];
         this['id'] = this.id;
