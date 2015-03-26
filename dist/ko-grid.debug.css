@@ -30,7 +30,7 @@
   height: 100%;
   overflow: auto;
 }
-.fixed-height > .ko-grid .ko-grid-table-scroller {
+.fixed-height > .ko-grid > * > * > .ko-grid-table-scroller {
   overflow-y: scroll;
 }
 .ko-grid-table {

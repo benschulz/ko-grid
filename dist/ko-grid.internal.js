@@ -1,8 +1,8 @@
-/**
+/*
  * Copyright (c) 2015, Ben Schulz
  * License: BSD 3-clause (http://opensource.org/licenses/BSD-3-Clause)
  */
-define(['onefold-dom', 'onefold-js', 'ko-indexed-repeat', 'knockout'],    function(onefold_dom, onefold_js, ko_indexed_repeat, knockout) {
+define(['onefold-dom', 'indexed-list', 'onefold-lists', 'onefold-js', 'ko-data-source', 'ko-indexed-repeat', 'knockout'],    function(onefold_dom, indexed_list, onefold_lists, onefold_js, ko_data_source, ko_indexed_repeat, knockout) {
 var ko_grid_template, text, text_ko_grid_columnshtmltemplate, ko_grid_columns, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate, ko_grid_data, text_ko_grid_headershtmltemplate, ko_grid_headers, ko_grid_layout, ko_grid_core, ko_grid_extensions, text_ko_grid_gridhtmltemplate, ko_grid_binding, ko_grid;
 
 ko_grid_template = function () {
@@ -16,6 +16,7 @@ ko_grid_template = function () {
   var OPERATOR_AFTER = 4;
   var OPERATOR_TO_APPEND = 5;
   var OPERATOR_TO_PREPEND = 6;
+  /** @constructor */
   // TODO eliminate mutation, move towards returning a new template at each step
   function GridTemplate(initialMarkup) {
     var placeholders = {};
@@ -77,6 +78,11 @@ ko_grid_template = function () {
       var replacement = replacementProducer(placeholder, replacementMarkup);
       configuredTemplate = configuredTemplate.replace(placeholder, replacement);
     };
+    /**
+     * @param {number} operator
+     * @param {function(string,string)=} replacementProducer
+     * @returns {Function}
+     */
     var createPlaceholderReplacementOperation = function (operator, replacementProducer) {
       replacementProducer = replacementProducer || function (p, m) {
         return m + p;
@@ -146,7 +152,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
       this.byId = function (id) {
         var column = this.tryById(id);
         if (!column)
-          throw new Error('The column id `' + id + '` is already taken.');
+          throw new Error('The column id `' + id + '` is undefined.');
         return column;
       }.bind(this);
       this['byId'] = this.byId;
@@ -206,18 +212,18 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
         displayedColumns(columnsToBeDisplayed);
       }.bind(this);
       this['showOnlyThoseWhich'] = this.showOnlyThoseWhich;
-      this._combinedWidthInPixels = ko.computed(function () {
+      this.combinedWidth = ko.pureComputed(function () {
         var sum = 0;
         var displayed = this.displayed();
         for (var i = 0; i < displayed.length; ++i)
           sum += displayed[i].widthInPixels();
         return sum;
       }.bind(this));
-      this['_combinedWidthInPixels'] = this._combinedWidthInPixels;
-      disposables.push(this._combinedWidthInPixels);
+      this['combinedWidth'] = this.combinedWidth;
       this.add = function (column) {
         var viewModel = createColumn({
-          'id': '#' + column.id,
+          userDefined: false,
+          'id': '$' + column.id,
           'label': column.label,
           'hidden': column.hidden || false,
           'width': column.width
@@ -243,11 +249,14 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
       element.style.width = column.width();
     }
   };
+  /** @constructor */
   function Column(grid, gridConfig, column) {
     this.id = column['id'];
     this['id'] = this.id;
     this.property = column['property'] || this.id;
     this['property'] = this.property;
+    this.userDefined = column.userDefined !== false;
+    this['userDefined'] = this.userDefined;
     this.__visible = !column['hidden'];
     this.visible = function () {
       return this.__visible;
@@ -294,6 +303,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
 }(knockout, onefold_js, text_ko_grid_columnshtmltemplate);
 
 ko_grid_application_event_dispatcher = function (js, dom) {
+  /** @constructor */
   function ApplicationEvent(originalEvent) {
     var applicationDefaultPrevented = originalEvent.defaultPrevented;
     js.objects.extend(this, originalEvent, {
@@ -309,11 +319,13 @@ ko_grid_application_event_dispatcher = function (js, dom) {
       }
     });
   }
+  /** @constructor */
   function ApplicationEventHandler(handler, selector) {
     this.handler = handler;
     this.selector = selector;
   }
-  return function ApplicationEventDispatcher(argumentsSupplier) {
+  /** @constructor */
+  function ApplicationEventDispatcher(argumentsSupplier) {
     argumentsSupplier = argumentsSupplier || function (event) {
       return [event];
     };
@@ -360,21 +372,22 @@ ko_grid_application_event_dispatcher = function (js, dom) {
         h.handler.apply(root, handlerArguments);
       });
     }
-  };
+  }
+  return ApplicationEventDispatcher;
 }(onefold_js, onefold_dom);
-text_ko_grid_datahtmltemplate = '<tbody class="ko-grid-tbody" data-bind="_gridWidth: columns._combinedWidthInPixels() + \'px\'">\n    <!--before:tbody-->\n    <tr class="ko-grid-tr ko-grid-row"\n        data-bind="indexedRepeat: {\n            forEach: data.rows.displayed,\n            indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },\n            as: \'row\',\n            at: \'rowIndex\',\n            allowDeviation: true,\n            onDeviation: data.rows.__handleDisplayedRowsDeviate,\n            onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"\n        data-repeat-bind="__gridRow: { classify: grid.data.rows.__classify, row: row, index: rowIndex }">\n\n        <td data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\', allowElementRecycling: false }"\n            data-repeat-bind="__gridCell: { row: row, column: column }"></td>\n    </tr>\n    <!--after:tbody-->\n</tbody>';
+text_ko_grid_datahtmltemplate = '<tbody class="ko-grid-tbody" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n    <tr class="ko-grid-tr ko-grid-row"\n        data-bind="indexedRepeat: {\n            forEach: data.rows.displayed,\n            indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },\n            as: \'row\',\n            at: \'rowIndex\',\n            allowDeviation: true,\n            onDeviation: data.rows.__handleDisplayedRowsDeviate,\n            onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"\n        data-repeat-bind="__gridRow: { classify: grid.data.rows.__classify, row: row, index: rowIndex }">\n\n        <td data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\', allowElementRecycling: false }"\n            data-repeat-bind="__gridCell: { row: row, column: column }"></td>\n    </tr>\n</tbody>';
 
 ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
   var ELEMENT_NODE = window.Node.ELEMENT_NODE;
   var INDIFFERENT_COMPARATOR = js.functions.zero;
   var document = window.document;
   var data = {
-    INDIFFERENT_COMPARATOR: INDIFFERENT_COMPARATOR,
     init: function (template) {
-      template.replace('body').with(dataTemplate);
+      template.into('body').insert(dataTemplate);
     },
     Constructor: function (bindingValue, config, grid) {
       var disposeCallbacks = [];
+      /** @type {DataSource<?>} */
       this.source = bindingValue['dataSource'];
       this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || js.functions.identity;
       this['valueSelector'] = this.valueSelector;
@@ -382,6 +395,16 @@ ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
       this['observableValueSelector'] = this.observableValueSelector;
       this.predicates = ko.observableArray(bindingValue.filters || []);
       this['predicates'] = this.predicates;
+      this.predicate = ko.pureComputed(function () {
+        var predicates = this.predicates().map(ko.unwrap);
+        return function (row) {
+          for (var i = 0; i < predicates.length; i++)
+            if (!predicates[i](row))
+              return false;
+          return true;
+        };
+      }.bind(this));
+      this['predicate'] = this.predicate;
       this.comparator = ko.observable(INDIFFERENT_COMPARATOR);
       this['comparator'] = this.comparator;
       this.offset = ko.observable(0);
@@ -403,20 +426,20 @@ ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
         };
       }.bind(this);
       disposeCallbacks.push(initTbodyElement.call(this, grid));
-      disposeCallbacks.push(initRows.call(this, grid));
-      disposeCallbacks.push(initEventDispatching.call(this, grid));
+      disposeCallbacks.push(initRows.call(this));
+      disposeCallbacks.push(initEventDispatching.call(this));
       disposeCallbacks.push(initElementLookup.call(this, grid));
       this._dispose = function () {
         disposeCallbacks.forEach(function (callback) {
           callback();
         });
       };
-    }.bind(this)
+    }
   };
   function initTbodyElement(grid) {
     this.__postApplyBindings(function (inner) {
       inner();
-      this.__tbodyElement = grid._rootElement.querySelector('.ko-grid-tbody');
+      this.__tbodyElement = grid.element.querySelector('.ko-grid-tbody');
     }.bind(this));
     return function () {
       this.__tbodyElement = null;
@@ -424,26 +447,9 @@ ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
   }
   function initRows() {
     var disposables = [];
-    var predicate = ko.pureComputed(function () {
-      var predicates = this.predicates().map(ko.unwrap);
-      return function (row) {
-        for (var i = 0; i < predicates.length; i++)
-          if (!predicates[i](row))
-            return false;
-        return true;
-      };
-    }.bind(this));
-    var comparator = ko.pureComputed(function () {
-      return this.comparator();
-    }.bind(this));
     var rows = {};
     this.rows = rows;
     this['rows'] = rows;
-    rows.all = ko.observableArray([]);
-    rows.filtered = ko.observableArray([]);
-    rows['filtered'] = rows.filtered;
-    rows.ordered = ko.observableArray([]);
-    rows['ordered'] = rows.ordered;
     rows.displayed = ko.observableArray([]);
     rows['displayed'] = rows.displayed;
     rows.displayedSynchronized = ko.observable(false).extend({ notify: 'always' });
@@ -456,24 +462,14 @@ ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
     }.bind(this);
     this.__preApplyBindings(function (inner) {
       inner();
-      var allRows = this.source.openView();
-      var filteredView = allRows.filteredBy(predicate);
-      var orderedView = this.rows.__orderedView = filteredView.orderedBy(comparator);
-      var pageView = orderedView.clipped(this.offset, this.limit);
-      disposables.push(allRows, filteredView, orderedView, pageView);
-      disposables.push(allRows.values.subscribe(function (v) {
-        this.rows.all(v);
-      }.bind(this)), filteredView.values.subscribe(function (v) {
-        this.rows.filtered(v);
-      }.bind(this)), orderedView.values.subscribe(function (v) {
-        this.rows.ordered(v);
-      }.bind(this)), pageView.observables.subscribe(function (v) {
+      var view = this.source.openView(function (q) {
+        return q.filteredBy(this.predicate).sortedBy(this.comparator).offsetBy(this.offset).limitedTo(this.limit);
+      }.bind(this));
+      disposables.push(view);
+      disposables.push(view.observables.subscribe(function (v) {
         this.rows.displayed(v);
       }.bind(this)));
-      rows.all(allRows.values());
-      rows.filtered(filteredView.values());
-      rows.ordered(orderedView.values());
-      rows.displayed(pageView.observables());
+      rows.displayed(view.observables());
     }.bind(this));
     var classifiers = [];
     rows['__classify'] = function (row) {
@@ -570,7 +566,7 @@ ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
           element.removeAttribute('data-hijacked');
           while (element.firstChild)
             ko.removeNode(element.firstChild);
-          var rowObservable = ko.contextFor(element).row();
+          var rowObservable = ko.contextFor(element)['row']();
           if (column._initCell)
             column._initCell(element, rowObservable, column);
           else
@@ -649,10 +645,10 @@ ko_grid_data = function (ko, js, ApplicationEventDispatcher, dataTemplate) {
   }
   return data;
 }(knockout, onefold_js, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate);
-text_ko_grid_headershtmltemplate = '<thead class="ko-grid-thead" data-bind="_gridWidth: columns._combinedWidthInPixels() + \'px\'">\n    <!--before:thead-->\n    <tr class="ko-grid-tr ko-grid-headers"\n        data-bind="indexedRepeat: { forEach: headers.__rows, indexedBy: \'__rowId\', as: \'headerRow\' }"\n        data-repeat-bind="click: headers.__handleClick">\n\n        <th class="ko-grid-th"\n            data-bind="indexedRepeat: { forEach: headerRow(), indexedBy: \'id\', as: \'header\' }"\n            data-repeat-bind="__gridHeader: header"></th>\n    </tr>\n    <!--after:thead-->\n</thead>';
+text_ko_grid_headershtmltemplate = '<thead class="ko-grid-thead" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n    <!--before:headers-->\n    <tr class="ko-grid-tr ko-grid-headers"\n        data-bind="indexedRepeat: { forEach: headers.__rows, indexedBy: \'__rowId\', as: \'headerRow\' }"\n        data-repeat-bind="click: headers.__handleClick">\n\n        <th class="ko-grid-th"\n            data-bind="indexedRepeat: { forEach: headerRow(), indexedBy: \'id\', as: \'header\' }"\n            data-repeat-bind="__gridHeader: header"></th>\n    </tr>\n    <!--after:headers-->\n</thead>';
 
 ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate) {
-  var document = window.document;
+  var document = window.document, Node = window.Node;
   function columnHeaderId(column) {
     return 'column-header-' + column.id;
   }
@@ -663,7 +659,7 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
   }
   var headers = {
     init: function (template) {
-      template.replace('head').with('headers', headersTemplate);
+      template.replace('head').with(headersTemplate);
     },
     Constructor: function (bindingValue, config, grid) {
       var invertedColumnGroups = invertColumnGroups(bindingValue['columnGroups'] || []);
@@ -731,13 +727,11 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
       };
       this.onHeaderClick = onClickDispatcher.registerHandler.bind(onClickDispatcher);
       this.onColumnHeaderClick = function (selectorOrHandler, handler) {
-        var $__arguments = arguments;
-        var selectorSpecified = $__arguments.length > 1;
+        var selectorSpecified = arguments.length > 1;
         handler = selectorSpecified ? handler : selectorOrHandler;
         var wrappedHandler = function (event, header) {
-          var $__arguments0 = arguments;
           if (header instanceof ColumnHeader)
-            handler.apply(this, $__arguments0);
+            handler.apply(this, arguments);
         };
         onClickDispatcher.registerHandler.apply(onClickDispatcher, selectorSpecified ? [
           selectorOrHandler,
@@ -780,8 +774,9 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
         var pooledInstance = pool[id] = pool[id] || newInstance;
         return pooledInstance;
       }
-    }.bind(this)
+    }
   };
+  /** @constructor */
   function ColumnHeader(column) {
     this.id = columnHeaderId(column);
     this['id'] = this.id;
@@ -801,6 +796,7 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
       this.rowSpan(rowSpan);
     }.bind(this);
   }
+  /** @constructor */
   function ColumnGroupHeader(columnGroup) {
     this.id = columnGroupHeaderId(columnGroup);
     this['id'] = this.id;
@@ -870,9 +866,14 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
       ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
         header.element(null);
       });
-      while (element.firstChild)
-        ko.removeNode(element.firstChild);
-      element.appendChild(document.createTextNode(''));
+      var child = element.firstChild;
+      while (child) {
+        var c = child;
+        if (c.nodeType === Node.TEXT_NODE)
+          ko.removeNode(c);
+        child = child.nextSibling;
+      }
+      element.insertBefore(document.createTextNode(''), element.firstChild);
       return { 'controlsDescendantBindings': true };
     },
     'update': function (element, valueAccessor) {
@@ -892,7 +893,10 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
       element.style.maxWidth = width;
       element.rowSpan = header.rowSpan();
       element.colSpan = header.columnSpan();
-      element.firstChild.nodeValue = header.label();
+      var child = element.firstChild;
+      while (child.nodeType !== Node.TEXT_NODE)
+        child = child.nextSibling;
+      child.nodeValue = header.label();
     }
   };
   return headers;
@@ -933,7 +937,7 @@ ko_grid_layout = function (ko, js) {
       this._postApplyBindings = function () {
         initScolling.call(this, grid);
         recalculate = createLayoutRecalculator(grid, recalculating, beforeRelayoutHandlers, afterRelayoutHandlers);
-        recalculate();
+        grid.postApplyBindings(recalculate);
       }.bind(this);
       // TODO let caller specify cell type (header cell vs. data cell vs. footer cell as well as other classes)
       this.determineCellDimensions = function (content) {
@@ -956,10 +960,10 @@ ko_grid_layout = function (ko, js) {
       this._dispose = function () {
         recalculateTrigger.dispose();
       };
-    }.bind(this)
+    }
   };
   var initScolling = function (grid) {
-    var gridElement = grid._rootElement.querySelector('.ko-grid');
+    var gridElement = grid.element;
     var scroller = gridElement.querySelector('.ko-grid-table-scroller');
     var thead = gridElement.querySelector('.ko-grid-thead');
     var tfoot = gridElement.querySelector('.ko-grid-tfoot');
@@ -970,7 +974,7 @@ ko_grid_layout = function (ko, js) {
     });
   };
   var createLayoutRecalculator = function (grid, recalculating, beforeRelayoutHandlers, afterRelayoutHandlers) {
-    var gridElement = grid._rootElement.querySelector('.ko-grid');
+    var gridElement = grid.element;
     var spacer = gridElement.querySelector('.ko-grid-table-scroller-padding');
     var scroller = gridElement.querySelector('.ko-grid-table-scroller');
     var thead = gridElement.querySelector('.ko-grid-thead');
@@ -1009,9 +1013,8 @@ ko_grid_layout = function (ko, js) {
     };
   };
   function withElementLayedOut(element, action) {
-    // This is a quick check to see if the element is layed out. The check assumes
-    // that neither the grid nor any of its containers has a fixed position.
-    if (element.offsetParent)
+    // This is a quick check to see if the element is layed out.
+    if (element.offsetWidth && element.offsetHeight)
       return action();
     var parent = element.parentNode;
     var placeholder = document.createComment('placeholder');
@@ -1049,6 +1052,7 @@ ko_grid_extensions = function (ko, js) {
     if (js.objects.hasOwn(extensions, extensionId))
       throw new Error('Extension id or alias already in use: `' + extensionId + '`.');
     extensions[extensionId] = extension;
+    extension.__knownAliases.push(extensionId);
     return extension;
   }
   function lookUpExtension(extensionId) {
@@ -1056,23 +1060,65 @@ ko_grid_extensions = function (ko, js) {
       throw new Error('No known extension id or alias: `' + extensionId + '`.');
     return extensions[extensionId];
   }
-  grid.defineExtension = function (extensionId, extensionSpec) {
-    return registerExtension(extensionId, new GridExtension(extensionSpec));
+  grid.defineExtension = function (name, spec) {
+    return registerExtension(name, new GridExtension(name, spec));
   };
   grid.lookUpExtension = lookUpExtension;
-  grid.declareExtensionAlias = function (extensionAlias, extensionId) {
-    return registerExtension(extensionAlias, grid.lookUpExtension(extensionId));
+  grid.declareExtensionAlias = function (alias, alreadyKnownAlias) {
+    return registerExtension(alias, grid.lookUpExtension(alreadyKnownAlias));
   };
-  function GridExtension(extensionSpec) {
-    this.dependencies = extensionSpec.dependencies || [];
-    this.initializer = extensionSpec.initializer || js.functions.nop;
-    this.Constructor = extensionSpec.Constructor;
+  grid.declareExtensionAliases = function (aliases, alreadyKnownAlias) {
+    var extension = grid.lookUpExtension(alreadyKnownAlias);
+    aliases.forEach(function (a) {
+      return registerExtension(a, extension);
+    });
+    return extension;
+  };
+  /** @constructor */
+  function GridExtension(primaryName, spec) {
+    this.primaryName = primaryName;
+    this.dependencies = spec.dependencies || [];
+    this.initializer = spec.initializer || js.functions.nop;
+    this.Constructor = spec.Constructor;
+    this.__knownAliases = [];
   }
+  GridExtension.prototype = {
+    get knownAliases() {
+      return this.__knownAliases.slice();
+    },
+    extractConfiguration: function (configurations, configName) {
+      var usedAlias = this.__determineUsedAlias(configurations, function (presentAliases) {
+        throw new Error('Conflicting configurations ' + presentAliases.map(function (c) {
+          return '`' + c + '`';
+        }).join(', ') + ' (configuration: `' + configName + '`).');
+      });
+      if (!usedAlias)
+        throw new Error('The extension `' + this.primaryName + '` must be configured (configuration: `' + configName + '`)');
+      return configurations[usedAlias];
+    },
+    tryExtractBindingValue: function (bindingValues) {
+      var usedAlias = this.__determineUsedAlias(bindingValues, function (presentAliases) {
+        throw new Error('Conflicting binding values ' + presentAliases.map(function (c) {
+          return '`' + c + '`';
+        }).join(', ') + '.');
+      });
+      return bindingValues[usedAlias];
+    },
+    __determineUsedAlias: function (object, dieDueToAmbiguity) {
+      var presentAliases = this.__knownAliases.filter(function (a) {
+        return js.objects.hasOwn(object, a);
+      });
+      if (presentAliases.length > 1)
+        dieDueToAmbiguity(presentAliases);
+      return presentAliases[0];
+    }
+  };
   return extensions;
 }(knockout, onefold_js);
-text_ko_grid_gridhtmltemplate = '<div class="ko-grid">\n    <!--before:grid-->\n    <div class="ko-grid-table-container">\n        <!--before:table-->\n        <div class="ko-grid-table-scroller-padding">\n            <div class="ko-grid-table-scroller">\n                <table class="ko-grid-table" data-bind="_gridWidth: columns._combinedWidthInPixels() + \'px\'">\n                    <!--columns-->\n                    <!--head-->\n                    <tfoot class="ko-grid-tfoot" data-bind="_gridWidth: columns._combinedWidthInPixels() + \'px\'"><!--tfoot--></tfoot>\n                    <!--body-->\n                </table>\n            </div>\n        </div>\n        <!--after:table-->\n    </div>\n    <!--after:grid-->\n</div>';
+text_ko_grid_gridhtmltemplate = '<div class="ko-grid">\n    <!--before:grid-->\n    <div class="ko-grid-table-container">\n        <!--before:table-->\n        <div class="ko-grid-table-scroller-padding">\n            <div class="ko-grid-table-scroller">\n                <table class="ko-grid-table" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n                    <!--columns-->\n                    <!--head-->\n                    <tfoot class="ko-grid-tfoot" data-bind="_gridWidth: columns.combinedWidth() + \'px\'"><!--tfoot--></tfoot>\n                    <!--body-->\n                </table>\n            </div>\n        </div>\n        <!--after:table-->\n    </div>\n    <!--after:grid-->\n</div>';
 
 ko_grid_binding = function (req, ko, js) {
+  var require = req;
   var document = window.document;
   var koGrid = ko.bindingHandlers['grid'] = ko.bindingHandlers['grid'] || {};
   var core = ko_grid_core;
@@ -1096,18 +1142,31 @@ ko_grid_binding = function (req, ko, js) {
     template.text = templateMarkup;
     document.querySelector('head').appendChild(template);
   };
-  function Grid(element, bindingValue) {
-    this.elementId = element.id;
-    this['elementId'] = this.elementId;
+  /** @constructor */
+  function Grid(rootElement, bindingValue) {
     this.primaryKey = bindingValue['primaryKey'];
     this['primaryKey'] = this.primaryKey;
-    this._rootElement = element;
+    this.rootElement = rootElement;
+    this['rootElement'] = rootElement;
+    this.element = null;
+    this['element'] = null;
     this._classes = ko.observableArray([]);
     this._dispose = js.functions.nop;
+    this.__postApplyBindings = js.functions.nop;
+    this.postApplyBindings = function (callback) {
+      if (!this.__postApplyBindings)
+        throw new Error('Illegal state: postApplyBindings-callbacks have been called already.');
+      var innerCallback = this.__postApplyBindings;
+      this.__postApplyBindings = function () {
+        innerCallback();
+        callback();
+      };
+    }.bind(this);
   }
   ko.bindingHandlers['grid']['init'] = function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
     var bindingValue = valueAccessor();
-    loadConfig(bindingValue['config'], function (config, templateName, extensionLoadOrder) {
+    var configName = bindingValue['config'];
+    loadConfig(configName, function (config, templateName, extensionLoadOrder) {
       var disposeCallbacks = [];
       var grid = new Grid(element, bindingValue);
       ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
@@ -1126,13 +1185,13 @@ ko_grid_binding = function (req, ko, js) {
         if (typeof instance._dispose === 'function')
           disposeCallbacks.push(instance._dispose.bind(instance));
       });
-      var configExtensions = config['extensions'];
-      var bindingExtensions = bindingValue['extensions'];
-      var gridExtensions = grid['extensions'] = {};
+      var extensionConfigs = config['extensions'];
+      var extensionBindingValues = bindingValue['extensions'] || {};
+      var gridExtensions = grid['extensions'] = grid.extensions = {};
       extensionLoadOrder.forEach(function (extensionName) {
         var extension = koGrid.lookUpExtension(extensionName);
-        var extensionConfig = configExtensions[extensionName];
-        var extensionBindingValue = bindingExtensions ? bindingExtensions[extensionName] || {} : {};
+        var extensionConfig = extension.extractConfiguration(extensionConfigs, configName);
+        var extensionBindingValue = extension.tryExtractBindingValue(extensionBindingValues) || {};
         if (extensionConfig['enabled'] === false && extensionBindingValue['enabled'] !== true || extensionBindingValue['enabled'] === false)
           return;
         extension.dependencies.forEach(function (dependency) {
@@ -1140,7 +1199,9 @@ ko_grid_binding = function (req, ko, js) {
             throw new Error('Dependency \'' + dependency + '\' was disabled.');
         });
         var instance = new extension.Constructor(extensionBindingValue, extensionConfig, grid, bindingValue, config);
-        gridExtensions[extensionName] = instance;
+        extension.knownAliases.forEach(function (alias) {
+          gridExtensions[alias] = instance;
+        });
         if (typeof instance.dispose === 'function')
           disposeCallbacks.push(instance.dispose.bind(instance));
       });
@@ -1153,17 +1214,22 @@ ko_grid_binding = function (req, ko, js) {
       var gridContext = bindingContext.createChildContext(grid, 'grid');
       ko.renderTemplate(templateName, gridContext, { 'templateEngine': templateEngine }, element);
       var gridElement = element.querySelector('.ko-grid');
-      js.objects.forEachProperty(configExtensions, function (extensionName) {
+      grid.element = gridElement;
+      grid['element'] = gridElement;
+      js.objects.forEachProperty(extensionConfigs, function (extensionName) {
         gridElement.className += ' with-' + js.strings.convertCamelToHyphenCase(extensionName);
       });
       coreComponentNames.forEach(function (n) {
         if (grid[n]._postApplyBindings)
           grid[n]._postApplyBindings();
       });
+      grid.__postApplyBindings();
+      grid.__postApplyBindings = null;
     });
     return { 'controlsDescendantBindings': true };
   };
   ko.bindingHandlers['grid']['update'] = js.functions.nop;
+  // TODO extract into own file
   var loadedConfigs = {};
   var loadConfig = function (configName, handler) {
     function callHandler() {
@@ -1177,28 +1243,26 @@ ko_grid_binding = function (req, ko, js) {
       coreComponents.forEach(function (component) {
         component.init(template, config);
       });
-      var configExtensions = config['extensions'];
+      var extensionConfigs = config['extensions'];
       var loadedExtensions = [];
       var loadingExtensions = [];
       var loadExtension = function (extensionName) {
         var extension = koGrid.lookUpExtension(extensionName);
-        if (js.arrays.contains(loadedExtensions, extensionName))
+        var primaryExtensionName = extension.primaryName;
+        var extensionConfig = extension.extractConfiguration(extensionConfigs, configName);
+        if (js.arrays.contains(loadedExtensions, primaryExtensionName))
           return;
-        if (!extension)
-          throw new Error('Extension  \'' + extensionName + '\' is not defined/loaded.');
-        if (js.arrays.contains(loadingExtensions, extensionName))
-          throw new Error('Dependency-Cycle: .. -> ' + loadingExtensions.join(' -> ') + ' -> ' + extensionName + ' -> ..');
-        if (!configExtensions[extensionName])
-          throw new Error('The extension \'' + extensionName + '\' must be configured (configuration: \'' + configName + '\')');
-        loadingExtensions.push(extensionName);
+        if (js.arrays.contains(loadingExtensions, primaryExtensionName))
+          throw new Error('Dependency-Cycle: .. -> ' + loadingExtensions.join(' -> ') + ' -> ' + primaryExtensionName + ' -> ..');
+        loadingExtensions.push(primaryExtensionName);
         extension.dependencies.forEach(loadExtension);
-        extension.initializer(template, configExtensions[extensionName], config);
-        if (loadingExtensions.pop() !== extensionName)
+        extension.initializer(template, extensionConfig, config);
+        if (loadingExtensions.pop() !== primaryExtensionName)
           throw new Error('Assertion error.');
-        loadedExtensions.push(extensionName);
+        loadedExtensions.push(primaryExtensionName);
       };
-      js.objects.forEachProperty(configExtensions, loadExtension);
-      var templateName = 'grid-template-' + configName;
+      Object.keys(extensionConfigs).forEach(loadExtension);
+      var templateName = 'ko-grid-template-' + configName;
       templateEngine.addTemplate(templateName, template.build());
       loadedConfigs[configName] = {
         config: config,
