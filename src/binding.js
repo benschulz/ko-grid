@@ -101,11 +101,6 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
             while (element.firstChild)
                 ko.removeNode(element.firstChild);
 
-            coreComponentNames.forEach(function (n) {
-                if (grid[n]._preApplyBindings)
-                    grid[n]._preApplyBindings();
-            });
-
             var gridContext = bindingContext.createChildContext(grid, 'grid');
             ko.renderTemplate(templateName, gridContext, {'templateEngine': templateEngine}, element);
 

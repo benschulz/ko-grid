@@ -33,13 +33,16 @@ define([
             this.limit = ko.observable(Number.POSITIVE_INFINITY);
             this['limit'] = this.limit;
 
-            this._preApplyBindings = js.functions.nop;
-            this.__preApplyBindings = callback => {
-                var innerCallback = this._preApplyBindings;
-                this._preApplyBindings = () => {
-                    callback(innerCallback);
-                };
-            };
+            var view = this.source.openView(q => q
+                .filteredBy(this.predicate)
+                .sortedBy(this.comparator)
+                .offsetBy(this.offset)
+                .limitedTo(this.limit));
+            disposeCallbacks.push(view.dispose.bind(view));
+
+            this.view = view;
+            this['view'] = view;
+
             this._postApplyBindings = js.functions.nop;
             this.__postApplyBindings = callback => {
                 var innerCallback = this._postApplyBindings;
@@ -85,20 +88,9 @@ define([
         rows['__handleDisplayedRowsDeviate'] = () => { this.rows.displayedSynchronized(false); };
         rows['__handleDisplayedRowsSynchronized'] = () => { this.rows.displayedSynchronized(true); };
 
-        this.__preApplyBindings(inner => {
-            inner();
-
-            var view = this.source.openView(q => q
-                .filteredBy(this.predicate)
-                .sortedBy(this.comparator)
-                .offsetBy(this.offset)
-                .limitedTo(this.limit));
-            disposables.push(view);
-
-            disposables.push(view.observables.subscribe(v => { this.rows.displayed(v); }));
-
-            rows.displayed(view.observables());
-        });
+        var view = this.view;
+        disposables.push(view.observables.subscribe(v => { rows.displayed(v); }));
+        rows.displayed(view.observables());
 
         var classifiers = [];
         rows['__classify'] = row => {
