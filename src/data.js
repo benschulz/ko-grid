@@ -9,7 +9,7 @@ define([
 
     var data = {
         init: template => {
-            template.into('body').insert(dataTemplate);
+            template.replace('body').with('body', dataTemplate);
         },
         Constructor: function (bindingValue, config, grid) {
             var disposeCallbacks = [];
