@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "onefold-dom": "benschulz/onefold-dom",
-    "onefold-js": "benschulz/onefold-js"
+    "onefold-js": "benschulz/onefold-js",
+    "stringifyable": "benschulz/stringifyable"
   }
 }

@@ -1,9 +1,9 @@
 'use strict';
 
-define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-grid/data.html.template'], function (ko, js, ApplicationEventDispatcher, dataTemplate) {
+define([
+    'knockout', 'onefold-js', 'stringifyable', './application-event-dispatcher', 'text!ko-grid/data.html.template'
+], function (ko, js, stringifyable, ApplicationEventDispatcher, dataTemplate) {
     var ELEMENT_NODE = window.Node.ELEMENT_NODE;
-
-    var INDIFFERENT_COMPARATOR = js.functions.zero;
 
     var document = window.document;
 
@@ -24,17 +24,9 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
 
             this.predicates = ko.observableArray(bindingValue.filters || []);
             this['predicates'] = this.predicates;
-            this.predicate = ko.pureComputed(() => {
-                var predicates = this.predicates().map(ko.unwrap);
-                return row => {
-                    for (var i = 0; i < predicates.length; i++)
-                        if (!predicates[i](row))
-                            return false;
-                    return true;
-                };
-            });
+            this.predicate = ko.pureComputed(() => stringifyable.predicates.and(this.predicates().map(ko.unwrap)));
             this['predicate'] = this.predicate;
-            this.comparator = ko.observable(INDIFFERENT_COMPARATOR);
+            this.comparator = ko.observable(stringifyable.comparators.indifferent);
             this['comparator'] = this.comparator;
             this.offset = ko.observable(0);
             this['offset'] = this.offset;
