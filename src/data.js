@@ -16,7 +16,7 @@ define([
         Constructor: function (bindingValue, config, grid) {
             var disposeCallbacks = [];
 
-            /** @type {DataSource<?>} */
+            /** @type {de.benshu.ko.dataSource.DataSource<?, ?, ?>} */
             this.source = bindingValue['dataSource'];
 
             this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || js.functions.identity;
