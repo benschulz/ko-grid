@@ -66,7 +66,7 @@ define([], function () {
                 case OPERATOR_TO_APPEND:
                 case OPERATOR_TO_PREPEND:
                     return placeholders[id] === PLACEHOLDER_KIND_REGULAR
-                        ? '<!--' + id + '-->'
+                        ? regularPlaceholder
                         : (operator === OPERATOR_TO_APPEND ? afterPlaceholder : beforePlaceholder);
             }
             throw new Error('Assertion error. Unkown operator: `' + operator + '`');
