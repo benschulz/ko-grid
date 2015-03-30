@@ -1,1 +1,0 @@
-An extensible UI component for displaying tabular data.
