@@ -10,6 +10,8 @@ define([
     var data = {
         init: template => {
             template.replace('body').with('body', dataTemplate);
+            template.to('table').prepend([
+                '<div class="ko-grid-load-indicator" data-bind="style: { display: data.rows.__dirty() ? \'block\' : \'none\' }">Loading&hellip;</div>'].join(''));
         },
         Constructor: function (bindingValue, config, grid) {
             var disposeCallbacks = [];
@@ -89,6 +91,8 @@ define([
         rows['__handleDisplayedRowsSynchronized'] = () => { this.rows.displayedSynchronized(true); };
 
         var view = this.view;
+        rows['__dirty'] = view.dirty;
+
         disposables.push(view.observables.subscribe(v => { rows.displayed(v); }));
         rows.displayed(view.observables());
 

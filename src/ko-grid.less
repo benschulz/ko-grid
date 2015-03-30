@@ -1,11 +1,14 @@
 ﻿// TODO extract to separate less file
+@primary-color: #4495DA;
+
 @border-color: #E5E5E5;
 @header-background-color: #F6F6F6;
-@header-underline-color: #4495DA;
-@alternating-row-background-color: #F2F9FF;
+@header-underline-color: @primary-color;
+@alternating-row-background-color: lighten(@primary-color, 40%);
 @hovering-row-background-color: #375880;
 
 // browser prefixes -.-
+.animation (@animation) { -webkit-animation: @animation; animation: @animation; }
 .box-sizing(@box) { -webkit-box-sizing: @box; -moz-box-sizing: @box; box-sizing: @box; }
 .border-box() { .box-sizing(border-box); }
 .additive-vertical-gradient (@base, @gradient) {
@@ -49,3 +52,41 @@
 
 /* ALIGNMENT */
 .ko-grid-column-header, .ko-grid-column-group-header { text-align: center; }
+
+/* LOAD INDICATOR */
+@load-indicator-size: 125px;
+@load-indicator-bobble-size: 16px;
+@load-indicator-color: lighten(@primary-color, 20%);
+
+.ko-grid-load-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: (-@load-indicator-bobble-size / 2);
+  width: @load-indicator-bobble-size;
+  height: @load-indicator-bobble-size;
+  border-radius: 50%;
+  .animation(1.25s linear 0s normal none infinite running ko-grid-load-indicator);
+  text-indent: -1000em;
+}
+
+@-webkit-keyframes ko-grid-load-indicator {
+  0%, 100% { box-shadow: 0 -3em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 2em -2em 0 0 @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 0 @load-indicator-color; }
+  12.5% { box-shadow: 0 -3em 0 0 @load-indicator-color, 2em -2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 3em 0 0 0 @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  25% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 0 @load-indicator-color, 3em 0 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 2em 2em 0 0 @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  37.5% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 0 @load-indicator-color, 2em 2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 0 3em 0 0 @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  50% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 0 @load-indicator-color, 0 3em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, -2em 2em 0 0 @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  62.5% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 0 @load-indicator-color, -2em 2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, -3em 0 0 0 @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  75% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 0 @load-indicator-color, -3em 0 0 (@load-indicator-bobble-size / 4) @load-indicator-color, -2em -2em 0 0 @load-indicator-color; }
+  87.5% { box-shadow: 0 -3em 0 0 @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 0 @load-indicator-color, -3em 0 0 0 @load-indicator-color, -2em -2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color; }
+}
+@keyframes ko-grid-load-indicator {
+  0%, 100% { box-shadow: 0 -3em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 2em -2em 0 0 @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 0 @load-indicator-color; }
+  12.5% { box-shadow: 0 -3em 0 0 @load-indicator-color, 2em -2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 3em 0 0 0 @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  25% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 0 @load-indicator-color, 3em 0 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 2em 2em 0 0 @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  37.5% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 0 @load-indicator-color, 2em 2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, 0 3em 0 0 @load-indicator-color, -2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  50% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 0 @load-indicator-color, 0 3em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, -2em 2em 0 0 @load-indicator-color, -3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  62.5% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 0 @load-indicator-color, -2em 2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color, -3em 0 0 0 @load-indicator-color, -2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color; }
+  75% { box-shadow: 0 -3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 0 @load-indicator-color, -3em 0 0 (@load-indicator-bobble-size / 4) @load-indicator-color, -2em -2em 0 0 @load-indicator-color; }
+  87.5% { box-shadow: 0 -3em 0 0 @load-indicator-color, 2em -2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 3em 0 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 2em 2em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, 0 3em 0 (-@load-indicator-bobble-size / 2) @load-indicator-color, -2em 2em 0 0 @load-indicator-color, -3em 0 0 0 @load-indicator-color, -2em -2em 0 (@load-indicator-bobble-size / 4) @load-indicator-color; }
+}
