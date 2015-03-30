@@ -1,0 +1,196 @@
+.ko-grid {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ko-grid-table-container {
+  position: relative;
+  overflow: hidden;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border-bottom: 0 solid transparent;
+}
+.ko-grid-table-scroller-padding {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border-width: 0;
+  overflow: hidden;
+}
+.ko-grid-table-scroller {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+.fixed-height > .ko-grid > * > * > .ko-grid-table-scroller {
+  overflow-y: scroll;
+}
+.ko-grid-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.ko-grid-thead {
+  position: absolute;
+  top: 0;
+}
+.ko-grid-tfoot {
+  position: absolute;
+  bottom: 0;
+}
+.ko-grid-th,
+.ko-grid-td,
+.ko-grid-tf {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+/* BORDER */
+.ko-grid {
+  border: 1px solid #e5e5e5;
+}
+.ko-grid-th,
+.ko-grid-td,
+.ko-grid-tf {
+  border: 1px solid #e5e5e5;
+}
+.ko-grid-tr:first-child .ko-grid-th {
+  border-top-width: 0;
+}
+.ko-grid-th:first-child,
+.ko-grid-td:first-child,
+.ko-grid-tf:first-child {
+  border-left-width: 0;
+}
+.ko-grid-th:last-child,
+.ko-grid-td:last-child,
+.ko-grid-tf:last-child {
+  border-right-width: 0;
+}
+.ko-grid-column-header,
+.ko-grid-column-group-header {
+  border-bottom: 2px solid #4495da;
+}
+.ko-grid-tf {
+  border-top-width: 0;
+  border-bottom-width: 0;
+}
+.ko-grid-table-scroller-padding {
+  margin-bottom: -1px;
+}
+/* cuts off the border of the last row TODO this should be solved differently */
+/* PADDING */
+.ko-grid-th,
+.ko-grid-td,
+.ko-grid-tf {
+  padding: 2px 6px;
+}
+/* BACKGROUND */
+.ko-grid {
+  background-color: white;
+}
+.ko-grid-table-scroller-padding {
+  border-style: solid;
+  border-top-color: #f6f6f6;
+  border-bottom-color: white;
+}
+.ko-grid-thead {
+  background-color: #f6f6f6;
+}
+.alternate.ko-grid-row {
+  background-color: #eef6fc;
+}
+.ko-grid-row:hover {
+  background: transparent -webkit-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background: transparent -moz-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background: transparent -ms-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background: transparent -o-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+}
+.alternate.ko-grid-row:hover {
+  background: #eef6fc -webkit-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background: #eef6fc -moz-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background: #eef6fc -ms-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background: #eef6fc -o-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+}
+/* ALIGNMENT */
+.ko-grid-column-header,
+.ko-grid-column-group-header {
+  text-align: center;
+}
+/* LOAD INDICATOR */
+.ko-grid-load-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  -webkit-animation: 1.25s linear 0s normal none infinite running ko-grid-load-indicator;
+  animation: 1.25s linear 0s normal none infinite running ko-grid-load-indicator;
+  text-indent: -1000em;
+}
+@-webkit-keyframes ko-grid-load-indicator {
+  0%,
+  100% {
+    box-shadow: 0 -3em 0 4px #99c5eb, 2em -2em 0 0 #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 0 #99c5eb;
+  }
+  12.5% {
+    box-shadow: 0 -3em 0 0 #99c5eb, 2em -2em 0 4px #99c5eb, 3em 0 0 0 #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  25% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 0 #99c5eb, 3em 0 0 4px #99c5eb, 2em 2em 0 0 #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  37.5% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 0 #99c5eb, 2em 2em 0 4px #99c5eb, 0 3em 0 0 #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  50% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 0 #99c5eb, 0 3em 0 4px #99c5eb, -2em 2em 0 0 #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  62.5% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 0 #99c5eb, -2em 2em 0 4px #99c5eb, -3em 0 0 0 #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  75% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 0 #99c5eb, -3em 0 0 4px #99c5eb, -2em -2em 0 0 #99c5eb;
+  }
+  87.5% {
+    box-shadow: 0 -3em 0 0 #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 0 #99c5eb, -3em 0 0 0 #99c5eb, -2em -2em 0 4px #99c5eb;
+  }
+}
+@keyframes ko-grid-load-indicator {
+  0%,
+  100% {
+    box-shadow: 0 -3em 0 4px #99c5eb, 2em -2em 0 0 #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 0 #99c5eb;
+  }
+  12.5% {
+    box-shadow: 0 -3em 0 0 #99c5eb, 2em -2em 0 4px #99c5eb, 3em 0 0 0 #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  25% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 0 #99c5eb, 3em 0 0 4px #99c5eb, 2em 2em 0 0 #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  37.5% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 0 #99c5eb, 2em 2em 0 4px #99c5eb, 0 3em 0 0 #99c5eb, -2em 2em 0 -8px #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  50% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 0 #99c5eb, 0 3em 0 4px #99c5eb, -2em 2em 0 0 #99c5eb, -3em 0 0 -8px #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  62.5% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 0 #99c5eb, -2em 2em 0 4px #99c5eb, -3em 0 0 0 #99c5eb, -2em -2em 0 -8px #99c5eb;
+  }
+  75% {
+    box-shadow: 0 -3em 0 -8px #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 0 #99c5eb, -3em 0 0 4px #99c5eb, -2em -2em 0 0 #99c5eb;
+  }
+  87.5% {
+    box-shadow: 0 -3em 0 0 #99c5eb, 2em -2em 0 -8px #99c5eb, 3em 0 0 -8px #99c5eb, 2em 2em 0 -8px #99c5eb, 0 3em 0 -8px #99c5eb, -2em 2em 0 0 #99c5eb, -3em 0 0 0 #99c5eb, -2em -2em 0 4px #99c5eb;
+  }
+}
