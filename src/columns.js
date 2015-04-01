@@ -141,7 +141,7 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
         this['cellClasses'] = this.cellClasses;
         this['footerClasses'] = this.footerClasses;
 
-        this.metadata = gridConfig['columnMetadataProvider'] ? gridConfig['columnMetadataProvider'](grid, column) : {};
+        this.metadata = gridConfig['columnMetadataSupplier'] ? gridConfig['columnMetadataSupplier'](grid.bindingValue, column) : {};
         this['metadata'] = this.metadata;
 
         this.renderValue = gridConfig['cellValueRenderer'] ? gridConfig['cellValueRenderer'].bind(undefined, this) : TO_STRING_VALUE_RENDERER;

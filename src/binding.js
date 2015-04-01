@@ -26,13 +26,13 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
 
     /** @constructor */
     function Grid(rootElement, bindingValue) {
+        this.bindingValue = bindingValue;
         this.primaryKey = bindingValue['primaryKey'];
         this['primaryKey'] = this.primaryKey;
         this.rootElement = rootElement;
         this['rootElement'] = rootElement;
         this.element = null;
         this['element'] = null;
-        this._classes = ko.observableArray([]);
         this._dispose = js.functions.nop;
 
         this.__postApplyBindings = js.functions.nop;
