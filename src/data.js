@@ -19,7 +19,7 @@ define([
             /** @type {de.benshu.ko.dataSource.DataSource<?, ?, ?>} */
             this.source = bindingValue['dataSource'];
 
-            this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || js.functions.identity;
+            this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || (p => p);
             this['valueSelector'] = this.valueSelector;
             this.observableValueSelector = bindingValue['observableValueSelector'] || config['observableValueSelector'] || this.valueSelector;
             this['observableValueSelector'] = this.observableValueSelector;
@@ -45,7 +45,7 @@ define([
             this.view = view;
             this['view'] = view;
 
-            this._postApplyBindings = js.functions.nop;
+            this._postApplyBindings = () => {};
             this.__postApplyBindings = callback => {
                 var innerCallback = this._postApplyBindings;
                 this._postApplyBindings = () => {
@@ -149,7 +149,7 @@ define([
             this.__tbodyElement.addEventListener('contextmenu', dispatchVia(onContextMenuDispatcher));
         });
 
-        return js.functions.nop;
+        return () => {};
     }
 
     function initElementLookup(grid) {
@@ -215,11 +215,11 @@ define([
         };
         this['lookupCell'] = this.lookupCell;
 
-        return js.functions.nop;
+        return () => {};
     }
 
     ko.bindingHandlers['__gridRow'] = {
-        'init': js.functions.nop,
+        'init': () => {},
         'update': (element, valueAccessor) => {
             var value = valueAccessor();
             var classify = value['classify'];

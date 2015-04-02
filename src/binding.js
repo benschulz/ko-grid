@@ -33,9 +33,9 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
         this['rootElement'] = rootElement;
         this.element = null;
         this['element'] = null;
-        this._dispose = js.functions.nop;
+        this._dispose = () => {};
 
-        this.__postApplyBindings = js.functions.nop;
+        this.__postApplyBindings = () => {};
 
         this.postApplyBindings = callback => {
             if (!this.__postApplyBindings)
@@ -123,7 +123,7 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
 
         return {'controlsDescendantBindings': true};
     };
-    ko.bindingHandlers['grid']['update'] = js.functions.nop;
+    ko.bindingHandlers['grid']['update'] = () => {};
 
     // TODO extract into own file
     var loadedConfigs = {};
@@ -176,7 +176,7 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
     };
 
     ko.bindingHandlers['_gridWidth'] = {
-        'init': js.functions.nop,
+        'init': () => {},
         'update': function (element, valueAccessor) {
             var w = valueAccessor();
             element.style.width = w;

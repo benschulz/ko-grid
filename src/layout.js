@@ -1,10 +1,10 @@
 'use strict';
 
-define(['knockout', 'onefold-js'], function (ko, js) {
+define(['knockout'], function (ko) {
     var document = window.document;
 
     var layout = {
-        init: js.functions.nop,
+        init: () => {},
         Constructor: function (bindingValue, config, grid) {
             var recalculating = ko.observable(false);
 

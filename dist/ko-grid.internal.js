@@ -2,7 +2,7 @@
  * Copyright (c) 2015, Ben Schulz
  * License: BSD 3-clause (http://opensource.org/licenses/BSD-3-Clause)
  */
-define(['onefold-dom', 'stringifyable', 'indexed-list', 'onefold-lists', 'onefold-js', 'ko-data-source', 'ko-indexed-repeat', 'knockout'],    function(onefold_dom, stringifyable, indexed_list, onefold_lists, onefold_js, ko_data_source, ko_indexed_repeat, knockout) {
+define(['onefold-dom', 'indexed-list', 'stringifyable', 'onefold-lists', 'onefold-js', 'ko-data-source', 'ko-indexed-repeat', 'knockout'],    function(onefold_dom, indexed_list, stringifyable, onefold_lists, onefold_js, ko_data_source, ko_indexed_repeat, knockout) {
 var ko_grid_template, text, text_ko_grid_columnshtmltemplate, ko_grid_columns, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate, ko_grid_data, text_ko_grid_headershtmltemplate, ko_grid_headers, ko_grid_layout, ko_grid_core, ko_grid_extensions, text_ko_grid_gridhtmltemplate, ko_grid_binding, ko_grid;
 
 ko_grid_template = function () {
@@ -131,7 +131,7 @@ text = {
 };
 text_ko_grid_columnshtmltemplate = '<colgroup class="ko-grid-colgroup">\n    <col class="ko-grid-col" data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\' }" data-repeat-bind="__gridColumn: column()">\n</colgroup>';
 
-ko_grid_columns = function (ko, js, columnsTemplate) {
+ko_grid_columns = function (ko, columnsTemplate) {
   var TO_STRING_VALUE_RENDERER = function (cellValue) {
     return cellValue === null ? '' : '' + cellValue;
   };
@@ -243,7 +243,8 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     }
   };
   ko.bindingHandlers['__gridColumn'] = {
-    'init': js.functions.nop,
+    'init': function () {
+    },
     'update': function (element, valueAccessor) {
       var column = valueAccessor();
       element.style.width = column.width();
@@ -279,7 +280,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     this['headerClasses'] = this.headerClasses;
     this['cellClasses'] = this.cellClasses;
     this['footerClasses'] = this.footerClasses;
-    this.metadata = gridConfig['columnMetadataProvider'] ? gridConfig['columnMetadataProvider'](grid, column) : {};
+    this.metadata = gridConfig['columnMetadataSupplier'] ? gridConfig['columnMetadataSupplier'](grid.bindingValue, column) : {};
     this['metadata'] = this.metadata;
     this.renderValue = gridConfig['cellValueRenderer'] ? gridConfig['cellValueRenderer'].bind(undefined, this) : TO_STRING_VALUE_RENDERER;
     this['renderValue'] = this.renderValue;
@@ -300,7 +301,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     this['overrideValueBinding'] = this.overrideValueBinding;
   }
   return columns;
-}(knockout, onefold_js, text_ko_grid_columnshtmltemplate);
+}(knockout, text_ko_grid_columnshtmltemplate);
 
 ko_grid_application_event_dispatcher = function (js, dom) {
   /** @constructor */
@@ -389,7 +390,9 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       var disposeCallbacks = [];
       /** @type {de.benshu.ko.dataSource.DataSource<?, ?, ?>} */
       this.source = bindingValue['dataSource'];
-      this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || js.functions.identity;
+      this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || function (p) {
+        return p;
+      };
       this['valueSelector'] = this.valueSelector;
       this.observableValueSelector = bindingValue['observableValueSelector'] || config['observableValueSelector'] || this.valueSelector;
       this['observableValueSelector'] = this.observableValueSelector;
@@ -411,7 +414,8 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       disposeCallbacks.push(view.dispose.bind(view));
       this.view = view;
       this['view'] = view;
-      this._postApplyBindings = js.functions.nop;
+      this._postApplyBindings = function () {
+      };
       this.__postApplyBindings = function (callback) {
         var innerCallback = this._postApplyBindings;
         this._postApplyBindings = function () {
@@ -514,7 +518,8 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       this.__tbodyElement.addEventListener('dblclick', dispatchVia(onDoubleClickDispatcher));
       this.__tbodyElement.addEventListener('contextmenu', dispatchVia(onContextMenuDispatcher));
     }.bind(this));
-    return js.functions.nop;
+    return function () {
+    };
   }
   function initElementLookup(grid) {
     var nthRowElement = function (n) {
@@ -572,10 +577,12 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       };
     }.bind(this);
     this['lookupCell'] = this.lookupCell;
-    return js.functions.nop;
+    return function () {
+    };
   }
   ko.bindingHandlers['__gridRow'] = {
-    'init': js.functions.nop,
+    'init': function () {
+    },
     'update': function (element, valueAccessor) {
       var value = valueAccessor();
       var classify = value['classify'];
@@ -890,10 +897,11 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
   return headers;
 }(knockout, onefold_js, ko_grid_application_event_dispatcher, text_ko_grid_headershtmltemplate);
 
-ko_grid_layout = function (ko, js) {
+ko_grid_layout = function (ko) {
   var document = window.document;
   var layout = {
-    init: js.functions.nop,
+    init: function () {
+    },
     Constructor: function (bindingValue, config, grid) {
       var recalculating = ko.observable(false);
       var recalculate = function (configuration) {
@@ -1020,7 +1028,7 @@ ko_grid_layout = function (ko, js) {
     }
   }
   return layout;
-}(knockout, onefold_js);
+}(knockout);
 
 ko_grid_core = function (ko, columns, data, headers, layout) {
   var grid = ko.bindingHandlers['grid'] = ko.bindingHandlers['grid'] || {};
@@ -1066,7 +1074,8 @@ ko_grid_extensions = function (ko, js) {
   function GridExtension(primaryName, spec) {
     this.primaryName = primaryName;
     this.dependencies = spec.dependencies || [];
-    this.initializer = spec.initializer || js.functions.nop;
+    this.initializer = spec.initializer || function () {
+    };
     this.Constructor = spec.Constructor;
     this.__knownAliases = [];
   }
@@ -1132,15 +1141,17 @@ ko_grid_binding = function (req, ko, js) {
   };
   /** @constructor */
   function Grid(rootElement, bindingValue) {
+    this.bindingValue = bindingValue;
     this.primaryKey = bindingValue['primaryKey'];
     this['primaryKey'] = this.primaryKey;
     this.rootElement = rootElement;
     this['rootElement'] = rootElement;
     this.element = null;
     this['element'] = null;
-    this._classes = ko.observableArray([]);
-    this._dispose = js.functions.nop;
-    this.__postApplyBindings = js.functions.nop;
+    this._dispose = function () {
+    };
+    this.__postApplyBindings = function () {
+    };
     this.postApplyBindings = function (callback) {
       if (!this.__postApplyBindings)
         throw new Error('Illegal state: postApplyBindings-callbacks have been called already.');
@@ -1212,7 +1223,8 @@ ko_grid_binding = function (req, ko, js) {
     });
     return { 'controlsDescendantBindings': true };
   };
-  ko.bindingHandlers['grid']['update'] = js.functions.nop;
+  ko.bindingHandlers['grid']['update'] = function () {
+  };
   // TODO extract into own file
   var loadedConfigs = {};
   var loadConfig = function (configName, handler) {
@@ -1257,7 +1269,8 @@ ko_grid_binding = function (req, ko, js) {
     });
   };
   ko.bindingHandlers['_gridWidth'] = {
-    'init': js.functions.nop,
+    'init': function () {
+    },
     'update': function (element, valueAccessor) {
       var w = valueAccessor();
       element.style.width = w;

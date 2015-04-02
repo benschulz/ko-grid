@@ -20,7 +20,7 @@
  */
 var onefold_js, ko_grid_template, text, text_ko_grid_columnshtmltemplate, ko_grid_columns, stringifyable, onefold_dom, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate, ko_grid_data, text_ko_grid_headershtmltemplate, ko_grid_headers, ko_grid_layout, ko_grid_core, ko_grid_extensions, text_ko_grid_gridhtmltemplate, ko_grid_binding, ko_grid;
 onefold_js = function () {
-  var onefold_js_objects, onefold_js_arrays, onefold_js_functions, onefold_js_strings, onefold_js_internal, onefold_js;
+  var onefold_js_objects, onefold_js_arrays, onefold_js_strings, onefold_js_internal, onefold_js;
   onefold_js_objects = function () {
     return {
       areEqual: areEqual,
@@ -181,25 +181,6 @@ onefold_js = function () {
       return destination;
     }
   }(onefold_js_objects);
-  onefold_js_functions = function () {
-    var constant = function (x) {
-      return function () {
-        return x;
-      };
-    };
-    return {
-      // TODO with arrow functions these can go away
-      true: constant(true),
-      false: constant(false),
-      nop: constant(undefined),
-      null: constant(null),
-      zero: constant(0),
-      constant: constant,
-      identity: function (x) {
-        return x;
-      }
-    };
-  }();
   onefold_js_strings = {
     convertCamelToHyphenCase: function (camelCased) {
       return camelCased.replace(/([A-Z])/g, function (match) {
@@ -219,14 +200,13 @@ onefold_js = function () {
       });
     }
   };
-  onefold_js_internal = function (arrays, functions, objects, strings) {
+  onefold_js_internal = function (arrays, objects, strings) {
     return {
       arrays: arrays,
-      functions: functions,
       objects: objects,
       strings: strings
     };
-  }(onefold_js_arrays, onefold_js_functions, onefold_js_objects, onefold_js_strings);
+  }(onefold_js_arrays, onefold_js_objects, onefold_js_strings);
   onefold_js = function (main) {
     return main;
   }(onefold_js_internal);
@@ -359,7 +339,7 @@ text = {
 };
 text_ko_grid_columnshtmltemplate = '<colgroup class="ko-grid-colgroup">\n    <col class="ko-grid-col" data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\' }" data-repeat-bind="__gridColumn: column()">\n</colgroup>';
 
-ko_grid_columns = function (ko, js, columnsTemplate) {
+ko_grid_columns = function (ko, columnsTemplate) {
   var TO_STRING_VALUE_RENDERER = function (cellValue) {
     return cellValue === null ? '' : '' + cellValue;
   };
@@ -471,7 +451,8 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     }
   };
   ko.bindingHandlers['__gridColumn'] = {
-    'init': js.functions.nop,
+    'init': function () {
+    },
     'update': function (element, valueAccessor) {
       var column = valueAccessor();
       element.style.width = column.width();
@@ -507,7 +488,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     this['headerClasses'] = this.headerClasses;
     this['cellClasses'] = this.cellClasses;
     this['footerClasses'] = this.footerClasses;
-    this.metadata = gridConfig['columnMetadataProvider'] ? gridConfig['columnMetadataProvider'](grid, column) : {};
+    this.metadata = gridConfig['columnMetadataSupplier'] ? gridConfig['columnMetadataSupplier'](grid.bindingValue, column) : {};
     this['metadata'] = this.metadata;
     this.renderValue = gridConfig['cellValueRenderer'] ? gridConfig['cellValueRenderer'].bind(undefined, this) : TO_STRING_VALUE_RENDERER;
     this['renderValue'] = this.renderValue;
@@ -528,7 +509,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     this['overrideValueBinding'] = this.overrideValueBinding;
   }
   return columns;
-}(knockout, onefold_js, text_ko_grid_columnshtmltemplate);
+}(knockout, text_ko_grid_columnshtmltemplate);
 stringifyable = function (onefold_js) {
   var stringifyable_make_stringifyable, stringifyable_comparators, stringifyable_functions, stringifyable_predicates, stringifyable_stringify_replacer, stringifyable_internal, stringifyable;
   stringifyable_make_stringifyable = function (js) {
@@ -581,9 +562,9 @@ stringifyable = function (onefold_js) {
       makeComparator(result);
       makeStringifyable(result, function () {
         return {
-          type: 'by-function-comparator',
-          function: fn.stringifyable,
-          comparator: comparator.stringifyable
+          'type': 'by-function-comparator',
+          'function': fn.stringifyable,
+          'comparator': comparator.stringifyable
         };
       });
       return result;
@@ -595,8 +576,8 @@ stringifyable = function (onefold_js) {
       makeComparator(result, comparator);
       makeStringifyable(result, function () {
         return {
-          type: 'reversed-comparator',
-          comparator: comparator.stringifyable
+          'type': 'reversed-comparator',
+          'comparator': comparator.stringifyable
         };
       });
       return result;
@@ -607,14 +588,14 @@ stringifyable = function (onefold_js) {
     };
     makeComparator(naturalComparator);
     makeStringifyable(naturalComparator, function () {
-      return { type: 'natural-comparator' };
+      return { 'type': 'natural-comparator' };
     });
     var indifferentComparator = function (a, b) {
       return 0;
     };
     makeComparator(indifferentComparator);
     makeStringifyable(indifferentComparator, function () {
-      return { type: 'indifferent-comparator' };
+      return { 'type': 'indifferent-comparator' };
     });
     return {
       indifferent: indifferentComparator,
@@ -641,8 +622,8 @@ stringifyable = function (onefold_js) {
         makeFunction(fn);
         makeStringifyable(fn, function () {
           return {
-            type: 'property-accessor',
-            propertyName: propertyName
+            'type': 'property-accessor',
+            'propertyName': propertyName
           };
         });
         return fn;
@@ -710,14 +691,14 @@ stringifyable = function (onefold_js) {
     };
     makePredicate(alwaysFalse);
     makeStringifyable(alwaysFalse, function () {
-      return { type: 'always-false-predicate' };
+      return { 'type': 'always-false-predicate' };
     });
     var alwaysTrue = function () {
       return true;
     };
     makePredicate(alwaysTrue);
     makeStringifyable(alwaysTrue, function () {
-      return { type: 'always-true-predicate' };
+      return { 'type': 'always-true-predicate' };
     });
     function andPredicate(components) {
       if (!components.length)
@@ -746,9 +727,9 @@ stringifyable = function (onefold_js) {
       makePredicate(result);
       makeStringifyable(result, function () {
         return {
-          type: 'by-function-predicate',
-          function: fn.stringifyable,
-          predicate: predicate.stringifyable
+          'type': 'by-function-predicate',
+          'function': fn.stringifyable,
+          'predicate': predicate.stringifyable
         };
       });
       return result;
@@ -760,8 +741,8 @@ stringifyable = function (onefold_js) {
       makePredicate(result, predicate);
       makeStringifyable(result, function () {
         return {
-          type: 'negated-predicate',
-          predicate: predicate.stringifyable
+          'type': 'negated-predicate',
+          'predicate': predicate.stringifyable
         };
       });
       return result;
@@ -806,10 +787,10 @@ stringifyable = function (onefold_js) {
         makePredicate(result);
         makeStringifyable(result, function () {
           return {
-            type: 'regular-expression-predicate',
-            regularExpression: regularExpression.source,
-            caseSensitive: !regularExpression.ignoreCase,
-            multiline: regularExpression.multiline
+            'type': 'regular-expression-predicate',
+            'regularExpression': regularExpression.source,
+            'caseSensitive': !regularExpression.ignoreCase,
+            'multiline': regularExpression.multiline
           };
         });
         return result;
@@ -965,7 +946,9 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       var disposeCallbacks = [];
       /** @type {de.benshu.ko.dataSource.DataSource<?, ?, ?>} */
       this.source = bindingValue['dataSource'];
-      this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || js.functions.identity;
+      this.valueSelector = bindingValue['valueSelector'] || config['valueSelector'] || function (p) {
+        return p;
+      };
       this['valueSelector'] = this.valueSelector;
       this.observableValueSelector = bindingValue['observableValueSelector'] || config['observableValueSelector'] || this.valueSelector;
       this['observableValueSelector'] = this.observableValueSelector;
@@ -987,7 +970,8 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       disposeCallbacks.push(view.dispose.bind(view));
       this.view = view;
       this['view'] = view;
-      this._postApplyBindings = js.functions.nop;
+      this._postApplyBindings = function () {
+      };
       this.__postApplyBindings = function (callback) {
         var innerCallback = this._postApplyBindings;
         this._postApplyBindings = function () {
@@ -1090,7 +1074,8 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       this.__tbodyElement.addEventListener('dblclick', dispatchVia(onDoubleClickDispatcher));
       this.__tbodyElement.addEventListener('contextmenu', dispatchVia(onContextMenuDispatcher));
     }.bind(this));
-    return js.functions.nop;
+    return function () {
+    };
   }
   function initElementLookup(grid) {
     var nthRowElement = function (n) {
@@ -1148,10 +1133,12 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       };
     }.bind(this);
     this['lookupCell'] = this.lookupCell;
-    return js.functions.nop;
+    return function () {
+    };
   }
   ko.bindingHandlers['__gridRow'] = {
-    'init': js.functions.nop,
+    'init': function () {
+    },
     'update': function (element, valueAccessor) {
       var value = valueAccessor();
       var classify = value['classify'];
@@ -1466,10 +1453,11 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
   return headers;
 }(knockout, onefold_js, ko_grid_application_event_dispatcher, text_ko_grid_headershtmltemplate);
 
-ko_grid_layout = function (ko, js) {
+ko_grid_layout = function (ko) {
   var document = window.document;
   var layout = {
-    init: js.functions.nop,
+    init: function () {
+    },
     Constructor: function (bindingValue, config, grid) {
       var recalculating = ko.observable(false);
       var recalculate = function (configuration) {
@@ -1596,7 +1584,7 @@ ko_grid_layout = function (ko, js) {
     }
   }
   return layout;
-}(knockout, onefold_js);
+}(knockout);
 
 ko_grid_core = function (ko, columns, data, headers, layout) {
   var grid = ko.bindingHandlers['grid'] = ko.bindingHandlers['grid'] || {};
@@ -1642,7 +1630,8 @@ ko_grid_extensions = function (ko, js) {
   function GridExtension(primaryName, spec) {
     this.primaryName = primaryName;
     this.dependencies = spec.dependencies || [];
-    this.initializer = spec.initializer || js.functions.nop;
+    this.initializer = spec.initializer || function () {
+    };
     this.Constructor = spec.Constructor;
     this.__knownAliases = [];
   }
@@ -1708,15 +1697,17 @@ ko_grid_binding = function (req, ko, js) {
   };
   /** @constructor */
   function Grid(rootElement, bindingValue) {
+    this.bindingValue = bindingValue;
     this.primaryKey = bindingValue['primaryKey'];
     this['primaryKey'] = this.primaryKey;
     this.rootElement = rootElement;
     this['rootElement'] = rootElement;
     this.element = null;
     this['element'] = null;
-    this._classes = ko.observableArray([]);
-    this._dispose = js.functions.nop;
-    this.__postApplyBindings = js.functions.nop;
+    this._dispose = function () {
+    };
+    this.__postApplyBindings = function () {
+    };
     this.postApplyBindings = function (callback) {
       if (!this.__postApplyBindings)
         throw new Error('Illegal state: postApplyBindings-callbacks have been called already.');
@@ -1788,7 +1779,8 @@ ko_grid_binding = function (req, ko, js) {
     });
     return { 'controlsDescendantBindings': true };
   };
-  ko.bindingHandlers['grid']['update'] = js.functions.nop;
+  ko.bindingHandlers['grid']['update'] = function () {
+  };
   // TODO extract into own file
   var loadedConfigs = {};
   var loadConfig = function (configName, handler) {
@@ -1833,7 +1825,8 @@ ko_grid_binding = function (req, ko, js) {
     });
   };
   ko.bindingHandlers['_gridWidth'] = {
-    'init': js.functions.nop,
+    'init': function () {
+    },
     'update': function (element, valueAccessor) {
       var w = valueAccessor();
       element.style.width = w;

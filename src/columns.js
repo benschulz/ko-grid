@@ -1,6 +1,6 @@
 'use strict';
 
-define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], function (ko, js, columnsTemplate) {
+define(['knockout', 'text!ko-grid/columns.html.template'], function (ko, columnsTemplate) {
     var TO_STRING_VALUE_RENDERER = cellValue => cellValue === null ? '' : '' + cellValue;
 
     var columns = {
@@ -105,7 +105,7 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
     };
 
     ko.bindingHandlers['__gridColumn'] = {
-        'init': js.functions.nop,
+        'init': () => {},
         'update': function (element, valueAccessor) {
             var column = valueAccessor();
 

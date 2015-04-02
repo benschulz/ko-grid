@@ -33,7 +33,7 @@ define(['knockout', 'onefold-js'], function (ko, js) {
     function GridExtension(primaryName, spec) {
         this.primaryName = primaryName;
         this.dependencies = spec.dependencies || [];
-        this.initializer = spec.initializer || js.functions.nop;
+        this.initializer = spec.initializer || (() => {});
         this.Constructor = spec.Constructor;
 
         this.__knownAliases = [];
