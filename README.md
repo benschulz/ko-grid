@@ -15,7 +15,7 @@ The ko-grid component itself is only a base to be built upon. As such it provide
 
 ### Extensions
 
- - [**aggregate**](https://github.com/benschulz/ko-grid-aggregate). Display aggregate information in the column footer
+ - [**aggregate**](https://github.com/benschulz/ko-grid-aggregate). Display aggregate information in the grid's footer.
  - [**column-resizing**](https://github.com/benschulz/ko-grid-column-resizing). Let the user resize columns by dragging its right border.
  - [**column-scaling**](https://github.com/benschulz/ko-grid-column-scaling). Have the column widths scale to fit the grid width when extra space is available.
  - [**column-width-persistence**](https://github.com/benschulz/ko-grid-column-width-persistence). Users' column width adjustments are remembered.
@@ -34,7 +34,7 @@ The following extensions don't provide user-oriented features directly, but rath
  - [**resize-detection**](https://github.com/benschulz/ko-grid-resize-detection). Detects when the grids container was resized and triggers a relayout.
  - [**toolbar**](https://github.com/benschulz/ko-grid-toolbar). Displays a grid toolbar to be filled by other extensions.
  - [**view-modes**](https://github.com/benschulz/ko-grid-view-modes). Keeps track of the view mode(s) the grid is currently in (e.g. full-screen mode).
- - [**view-state-storage**](https://github.com/benschulz/ko-grid-). Persists view state information in (by default) the `localStorage` to be restored later.
+ - [**view-state-storage**](https://github.com/benschulz/ko-grid-view-state-storage). Persists view state information in (by default) the `localStorage` to be restored later.
 
 
 ## Requirements
@@ -131,7 +131,7 @@ Usually extensions are customized via the config, rather than the binding value.
 
 ### Config
 
-With the exception of `extensions` and the `cellValueRenderer`, most options described here can generally be omitted for the default for most use cases.
+With the exception of `extensions` and the `cellValueRenderer`, most options described here can be omitted for most use cases.
 
 #### extensions
 
