@@ -5,6 +5,8 @@
             indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },
             as: 'row',
             at: 'rowIndex',
+            beforeElementRecycling: data.rows.__handleElementRecycling,
+            afterElementRecycled: data.rows.__handleElementRecycled,
             allowDeviation: true,
             onDeviation: data.rows.__handleDisplayedRowsDeviate,
             onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"

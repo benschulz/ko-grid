@@ -131,7 +131,7 @@ text = {
 };
 text_ko_grid_columnshtmltemplate = '<colgroup class="ko-grid-colgroup">\n    <col class="ko-grid-col" data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\' }" data-repeat-bind="__gridColumn: column()">\n</colgroup>';
 
-ko_grid_columns = function (ko, columnsTemplate) {
+ko_grid_columns = function (ko, js, columnsTemplate) {
   var TO_STRING_VALUE_RENDERER = function (cellValue) {
     return cellValue === null ? '' : '' + cellValue;
   };
@@ -288,20 +288,30 @@ ko_grid_columns = function (ko, columnsTemplate) {
       this.renderValue = override(this.renderValue);
     }.bind(this);
     this.overrideValueBinding = function (override) {
-      var overridden = override({
-        init: this._initCell,
-        update: this._updateCell
-      });
+      var overridden = this._overrideValueBinding(override);
       if (!overridden || !overridden.init || !overridden.update)
         throw new Error('The cell value binding must define an `init` as well as an `update` method.');
       this._initCell = overridden.init;
       this._updateCell = overridden.update;
     }.bind(this);
+    this._overrideValueBinding = function (override) {
+      var overridden = override(js.objects.extend({
+        init: this._initCell,
+        update: this._updateCell
+      }, {
+        'init': this._initCell,
+        'update': this._updateCell
+      }));
+      return {
+        init: overridden.init || overridden['init'],
+        update: overridden.update || overridden['update']
+      };
+    }.bind(this);
     this['overrideValueRendering'] = this.overrideValueRendering;
     this['overrideValueBinding'] = this.overrideValueBinding;
   }
   return columns;
-}(knockout, text_ko_grid_columnshtmltemplate);
+}(knockout, onefold_js, text_ko_grid_columnshtmltemplate);
 
 ko_grid_application_event_dispatcher = function (js, dom) {
   /** @constructor */
@@ -376,10 +386,11 @@ ko_grid_application_event_dispatcher = function (js, dom) {
   }
   return ApplicationEventDispatcher;
 }(onefold_js, onefold_dom);
-text_ko_grid_datahtmltemplate = '<tbody class="ko-grid-tbody" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n    <tr class="ko-grid-tr ko-grid-row"\n        data-bind="indexedRepeat: {\n            forEach: data.rows.displayed,\n            indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },\n            as: \'row\',\n            at: \'rowIndex\',\n            allowDeviation: true,\n            onDeviation: data.rows.__handleDisplayedRowsDeviate,\n            onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"\n        data-repeat-bind="__gridRow: { classify: grid.data.rows.__classify, row: row, index: rowIndex }">\n\n        <td data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\', allowElementRecycling: false }"\n            data-repeat-bind="__gridCell: { row: row, column: column }"></td>\n    </tr>\n</tbody>';
+text_ko_grid_datahtmltemplate = '<tbody class="ko-grid-tbody" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n    <tr class="ko-grid-tr ko-grid-row"\n        data-bind="indexedRepeat: {\n            forEach: data.rows.displayed,\n            indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },\n            as: \'row\',\n            at: \'rowIndex\',\n            beforeElementRecycling: data.rows.__handleElementRecycling,\n            afterElementRecycled: data.rows.__handleElementRecycled,\n            allowDeviation: true,\n            onDeviation: data.rows.__handleDisplayedRowsDeviate,\n            onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"\n        data-repeat-bind="__gridRow: { classify: grid.data.rows.__classify, row: row, index: rowIndex }">\n\n        <td data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\', allowElementRecycling: false }"\n            data-repeat-bind="__gridCell: { row: row, column: column }"></td>\n    </tr>\n</tbody>';
 
 ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, dataTemplate) {
   var ELEMENT_NODE = window.Node.ELEMENT_NODE;
+  var HIJACKED_KEY = '__@__hijacked';
   var document = window.document;
   var data = {
     init: function (template) {
@@ -544,37 +555,78 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       }
       throw new Error('Column `' + n + '` does not exist.');
     };
+    var hijacks = [];
+    this.rows['__handleElementRecycling'] = function (element) {
+      Array.prototype.slice.call(element.querySelectorAll('.ko-grid-cell')).forEach(function (c) {
+        return c[HIJACKED_KEY] = null;
+      });
+    };
+    this.rows['__handleElementRecycled'] = function (element, bindingContext) {
+      var row = bindingContext['row']();
+      var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
+      if (js.objects.hasOwn(hijacks, rowId)) {
+        hijacks[rowId].forEach(function (h) {
+          var column = h.column;
+          var columnIndex = grid.columns.displayed().indexOf(column);
+          var cell = element.children[columnIndex];
+          h.element = cell;
+          cell[HIJACKED_KEY] = h;
+          if (h.init)
+            initCellElement(cell, row, column);
+          updateCellElement(cell, row, column);
+        });
+      }
+    }.bind(this);
     this.lookupCell = function (row, column) {
-      var rowIndex = this.rows.displayed().indexOf(row);
+      var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
+      var rowIndex = this.rows.displayed().tryFirstIndexOf(row);
       var columnIndex = grid.columns.displayed().indexOf(column);
       var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
-      function hijack(classes) {
-        if (element.hasAttribute('data-hijacked'))
+      function hijack(classes, override) {
+        if (element[HIJACKED_KEY])
           throw new Error('Illegal state: This cell is already hijacked.');
-        while (element.firstChild)
-          ko.removeNode(element.firstChild);
-        element.className += ' ' + classes;
-        element.setAttribute('data-hijacked', 'hijacked ' + classes);
+        var binding = column._overrideValueBinding(override || function (b) {
+          return b;
+        });
+        var hijacked = element[HIJACKED_KEY] = {
+          element: element,
+          column: column,
+          classes: classes,
+          init: binding.init,
+          update: binding.update
+        };
+        var rowHijacks = hijacks[rowId] = hijacks[rowId] || [];
+        rowHijacks.push(hijacked);
+        if (hijacked.init)
+          initCellElement(element, row, column);
+        updateCellElement(element, row, column);
         function release() {
-          element.removeAttribute('data-hijacked');
-          while (element.firstChild)
-            ko.removeNode(element.firstChild);
-          var rowObservable = ko.contextFor(element)['row']();
-          if (column._initCell)
-            column._initCell(element, rowObservable, column);
+          if (rowHijacks.length === 1)
+            delete hijacks[rowId];
           else
-            element.appendChild(document.createTextNode(''));
-          updateCellElement(element, rowObservable(), column);
+            rowHijacks.splice(rowHijacks.indexOf(hijacked), 1);
+          if (hijacked.element[HIJACKED_KEY] !== hijacked)
+            return;
+          // the element was recycled for another entry
+          hijacked.element[HIJACKED_KEY] = null;
+          initCellElement(hijacked.element, row, column);
+          updateCellElement(hijacked.element, row, column);
         }
-        return {
+        return js.objects.extend({
+          release: release,
+          dispose: release
+        }, {
           'dispose': release,
           'release': release
-        };
+        });
       }
-      return {
+      return js.objects.extend({
+        element: element,
+        hijack: hijack
+      }, {
         'element': element,
         'hijack': hijack
-      };
+      });
     }.bind(this);
     this['lookupCell'] = this.lookupCell;
     return function () {
@@ -604,15 +656,7 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
   ko.bindingHandlers['__gridCell'] = {
     'init': function (element, valueAccessor) {
       var value = valueAccessor();
-      var row = value['row'];
-      var column = value['column'];
-      var columnValue = column();
-      while (element.firstChild)
-        ko.removeNode(element.firstChild);
-      if (columnValue._initCell)
-        columnValue._initCell(element, row, column);
-      else
-        element.appendChild(document.createTextNode(''));
+      initCellElement(element, value['row'], value['column']());
       return { 'controlsDescendantBindings': true };
     },
     'update': function (element, valueAccessor) {
@@ -623,20 +667,30 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       updateCellElement(element, row, column);
     }
   };
+  function initCellElement(element, row, column) {
+    var hijacked = element[HIJACKED_KEY];
+    while (element.firstChild)
+      ko.removeNode(element.firstChild);
+    if (hijacked && hijacked.init)
+      hijacked.init(element, row, column);
+    if (column._initCell)
+      column._initCell(element, row, column);
+    else
+      element.appendChild(document.createTextNode(''));
+  }
   function updateCellElement(element, row, column) {
     var cell = row[column.property];
     var cellValue = cell && ko.unwrap(cell);
-    var hijacked = element.getAttribute('data-hijacked');
+    var hijacked = element[HIJACKED_KEY];
     // TODO since there may be thousands of cells we want to keep the dependency count at two (row+cell) => peek => need separate change handler for cellClasses
     var columnClasses = column.cellClasses.peek().join(' ');
-    element.className = 'ko-grid-td ko-grid-cell ' + columnClasses + (hijacked ? ' ' + hijacked : '');
-    if (hijacked)
-      return;
+    element.className = 'ko-grid-td ko-grid-cell ' + columnClasses + (hijacked ? ' ' + hijacked.classes : '');
+    if (hijacked && hijacked.update)
+      hijacked.update(element, cell, row, column);
     if (column._initCell)
       column._updateCell(element, cell, row, column);
-    else {
+    else
       element.lastChild.nodeValue = column.renderValue(cellValue);
-    }
   }
   return data;
 }(knockout, onefold_js, stringifyable, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate);

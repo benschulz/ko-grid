@@ -35,6 +35,19 @@ de.benshu.ko.grid.Data.prototype.offset;
 de.benshu.ko.grid.Data.prototype.limit;
 
 /**
+ * @param {O} row
+ * @param {de.benshu.ko.grid.Column} column
+ * @returns de.benshu.ko.grid.Data.Cell
+ */
+de.benshu.ko.grid.Data.prototype.lookupCell = function (row, column) {};
+
+/**
+ * @param {string|function(MouseEvent, ?, O, de.benshu.ko.grid.Column)} selectorOrHandler
+ * @param {function(MouseEvent, ?, O, de.benshu.ko.grid.Column)} handler
+ */
+de.benshu.ko.grid.Data.prototype.onCellClick = function (selectorOrHandler, handler) {};
+
+/**
  * @type {de.benshu.ko.dataSource.View<?, ?>}
  */
 de.benshu.ko.grid.Data.prototype.view;
@@ -49,6 +62,33 @@ de.benshu.ko.grid.Data.Rows = function () {};
  * @type {ko.Subscribable<boolean>}
  */
 de.benshu.ko.grid.Data.Rows.prototype.displayedSynchronized;
+
+/**
+ * @constructor
+ */
+de.benshu.ko.grid.Data.Cell = function () {};
+
+/**
+ * @type {Element}
+ */
+de.benshu.ko.grid.Data.Cell.prototype.element;
+
+/**
+ * @param classes
+ * @returns de.benshu.ko.grid.Data.Cell.Hijacked
+ */
+de.benshu.ko.grid.Data.Cell.prototype.hijack = function (classes) {};
+
+/**
+ * @constructor
+ */
+de.benshu.ko.grid.Data.Cell.Hijacked = function () {};
+
+/**
+ * @returns undefined
+ */
+de.benshu.ko.grid.Data.Cell.Hijacked.dispose = function () {};
+de.benshu.ko.grid.Data.Cell.Hijacked.release = de.benshu.ko.grid.Data.Cell.Hijacked.dispose;
 
 /**
  * @type {Object}

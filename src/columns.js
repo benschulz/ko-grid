@@ -1,6 +1,6 @@
 'use strict';
 
-define(['knockout', 'text!ko-grid/columns.html.template'], function (ko, columnsTemplate) {
+define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], function (ko, js, columnsTemplate) {
     var TO_STRING_VALUE_RENDERER = cellValue => cellValue === null ? '' : '' + cellValue;
 
     var columns = {
@@ -149,12 +149,20 @@ define(['knockout', 'text!ko-grid/columns.html.template'], function (ko, columns
 
         this.overrideValueRendering = override => { this.renderValue = override(this.renderValue); };
         this.overrideValueBinding = override => {
-            var overridden = override({init: this._initCell, update: this._updateCell});
+            var overridden = this._overrideValueBinding(override);
+
             if (!overridden || !overridden.init || !overridden.update)
                 throw new Error('The cell value binding must define an `init` as well as an `update` method.');
 
             this._initCell = overridden.init;
             this._updateCell = overridden.update;
+        };
+        this._overrideValueBinding = override => {
+            var overridden = override(js.objects.extend(
+                {init: this._initCell, update: this._updateCell},
+                {'init': this._initCell, 'update': this._updateCell}));
+
+            return {init: overridden.init || overridden['init'], update: overridden.update || overridden['update']};
         };
         this['overrideValueRendering'] = this.overrideValueRendering;
         this['overrideValueBinding'] = this.overrideValueBinding;

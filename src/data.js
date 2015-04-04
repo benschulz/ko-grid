@@ -4,6 +4,7 @@ define([
     'knockout', 'onefold-js', 'stringifyable', './application-event-dispatcher', 'text!ko-grid/data.html.template'
 ], function (ko, js, stringifyable, ApplicationEventDispatcher, dataTemplate) {
     var ELEMENT_NODE = window.Node.ELEMENT_NODE;
+    var HIJACKED_KEY = '__@__hijacked';
 
     var document = window.document;
 
@@ -175,43 +176,88 @@ define([
             throw new Error('Column `' + n + '` does not exist.');
         };
 
+        var hijacks = [];
+
+        this.rows['__handleElementRecycling'] = element => {
+            Array.prototype.slice.call(element.querySelectorAll('.ko-grid-cell')).forEach(c => c[HIJACKED_KEY] = null);
+        };
+        this.rows['__handleElementRecycled'] = (element, bindingContext) => {
+            var row = bindingContext['row']();
+            var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
+
+            if (js.objects.hasOwn(hijacks, rowId)) {
+                hijacks[rowId].forEach(h => {
+                    var column = h.column;
+                    var columnIndex = grid.columns.displayed().indexOf(column);
+                    var cell = element.children[columnIndex];
+
+                    h.element = cell;
+                    cell[HIJACKED_KEY] = h;
+                    if (h.init)
+                        initCellElement(cell, row, column);
+                    updateCellElement(cell, row, column);
+
+                });
+            }
+        };
+
         this.lookupCell = (row, column) => {
-            var rowIndex = this.rows.displayed().indexOf(row);
+            var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
+            var rowIndex = this.rows.displayed().tryFirstIndexOf(row);
             var columnIndex = grid.columns.displayed().indexOf(column);
 
             var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
 
-            function hijack(classes) {
-                if (element.hasAttribute('data-hijacked'))
+            function hijack(classes, override) {
+                if (element[HIJACKED_KEY])
                     throw new Error('Illegal state: This cell is already hijacked.');
 
-                while (element.firstChild)
-                    ko.removeNode(element.firstChild);
+                var binding = column._overrideValueBinding(override || (b => b));
+                var hijacked = element[HIJACKED_KEY] = {
+                    element: element,
+                    column: column,
+                    classes: classes,
+                    init: binding.init,
+                    update: binding.update
+                };
 
-                element.className += ' ' + classes;
-                element.setAttribute('data-hijacked', 'hijacked ' + classes);
+                var rowHijacks = hijacks[rowId] = hijacks[rowId] || [];
+                rowHijacks.push(hijacked);
+
+                if (hijacked.init)
+                    initCellElement(element, row, column);
+                updateCellElement(element, row, column);
 
                 function release() {
-                    element.removeAttribute('data-hijacked');
-                    while (element.firstChild)
-                        ko.removeNode(element.firstChild);
-
-                    var rowObservable = ko.contextFor(element)['row']();
-                    if (column._initCell)
-                        column._initCell(element, rowObservable, column);
+                    if (rowHijacks.length === 1)
+                        delete hijacks[rowId];
                     else
-                        element.appendChild(document.createTextNode(''));
+                        rowHijacks.splice(rowHijacks.indexOf(hijacked), 1);
 
-                    updateCellElement(element, rowObservable(), column);
+                    if (hijacked.element[HIJACKED_KEY] !== hijacked)
+                        return; // the element was recycled for another entry
+
+                    hijacked.element[HIJACKED_KEY] = null;
+                    initCellElement(hijacked.element, row, column);
+                    updateCellElement(hijacked.element, row, column);
                 }
 
-                return {'dispose': release, 'release': release};
+                return js.objects.extend({
+                    release: release,
+                    dispose: release
+                }, {
+                    'dispose': release,
+                    'release': release
+                });
             }
 
-            return {
+            return js.objects.extend({
+                element: element,
+                hijack: hijack
+            }, {
                 'element': element,
                 'hijack': hijack
-            };
+            });
         };
         this['lookupCell'] = this.lookupCell;
 
@@ -236,17 +282,9 @@ define([
     ko.bindingHandlers['__gridCell'] = {
         'init': (element, valueAccessor) => {
             var value = valueAccessor();
-            var row = value['row'];
-            var column = value['column'];
-            var columnValue = column();
 
-            while (element.firstChild)
-                ko.removeNode(element.firstChild);
+            initCellElement(element, value['row'], value['column']());
 
-            if (columnValue._initCell)
-                columnValue._initCell(element, row, column);
-            else
-                element.appendChild(document.createTextNode(''));
             return {
                 'controlsDescendantBindings': true
             };
@@ -259,23 +297,36 @@ define([
         }
     };
 
+    function initCellElement(element, row, column) {
+        var hijacked = element[HIJACKED_KEY];
+
+        while (element.firstChild)
+            ko.removeNode(element.firstChild);
+
+        if (hijacked && hijacked.init)
+            hijacked.init(element, row, column);
+        if (column._initCell)
+            column._initCell(element, row, column);
+        else
+            element.appendChild(document.createTextNode(''));
+    }
+
     function updateCellElement(element, row, column) {
         var cell = row[column.property];
         var cellValue = cell && ko.unwrap(cell);
 
-        var hijacked = element.getAttribute('data-hijacked');
+        var hijacked = element[HIJACKED_KEY];
 
         // TODO since there may be thousands of cells we want to keep the dependency count at two (row+cell) => peek => need separate change handler for cellClasses
         var columnClasses = column.cellClasses.peek().join(' ');
-        element.className = 'ko-grid-td ko-grid-cell ' + columnClasses + (hijacked ? ' ' + hijacked : '');
+        element.className = 'ko-grid-td ko-grid-cell ' + columnClasses + (hijacked ? ' ' + hijacked.classes : '');
 
-        if (hijacked) return;
-
+        if (hijacked && hijacked.update)
+            hijacked.update(element, cell, row, column);
         if (column._initCell)
             column._updateCell(element, cell, row, column);
-        else {
+        else
             element.lastChild.nodeValue = column.renderValue(cellValue);
-        }
     }
 
     return data;
