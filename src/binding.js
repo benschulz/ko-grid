@@ -1,6 +1,9 @@
 'use strict';
 
-define(['req', 'knockout', 'onefold-js', './template', './core', './extensions', 'text!ko-grid/grid.html.template', 'ko-indexed-repeat'], function (req, ko, js) {
+define([
+    'req', 'knockout', 'onefold-js', './application-event-dispatcher',
+    './template', './core', './extensions', 'text!ko-grid/grid.html.template', 'ko-indexed-repeat'
+], function (req, ko, js, ApplicationEventDispatcher) {
     var require = req;
     var document = window.document;
 
@@ -47,6 +50,14 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
                 callback();
             };
         };
+
+        var onKeyDownDispatcher = new ApplicationEventDispatcher();
+        this.onKeyDown = onKeyDownDispatcher.registerHandler.bind(onKeyDownDispatcher);
+        this['onKeyDown '] = this.onKeyDown;
+        rootElement.addEventListener('keydown', e => {
+            onKeyDownDispatcher.relativeToClosest('.ko-grid').dispatch(e);
+            return !e.defaultPrevented;
+        });
     }
 
     ko.bindingHandlers['grid']['init'] = function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
@@ -80,8 +91,8 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
 
             extensionLoadOrder.forEach(function (extensionName) {
                 var extension = koGrid.lookUpExtension(extensionName);
-                var extensionConfig = extension.extractConfiguration(extensionConfigs, configName);
                 var extensionBindingValue = extension.tryExtractBindingValue(extensionBindingValues) || {};
+                var extensionConfig = apply(extension.extractConfiguration(extensionConfigs, configName), extensionBindingValue, bindingValue);
 
                 if (extensionConfig['enabled'] === false && extensionBindingValue['enabled'] !== true || extensionBindingValue['enabled'] === false)
                     return;
@@ -120,6 +131,16 @@ define(['req', 'knockout', 'onefold-js', './template', './core', './extensions',
             grid.__postApplyBindings();
             grid.__postApplyBindings = null;
         });
+
+        /**
+         * @param {...*} config
+         * @return {?}
+         */
+        function apply(config) {
+            return typeof config === 'function'
+                ? config.apply(undefined, Array.prototype.slice.call(arguments, 1))
+                : config;
+        }
 
         return {'controlsDescendantBindings': true};
     };

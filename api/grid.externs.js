@@ -6,29 +6,9 @@
 de.benshu.ko.grid.Grid = function () {};
 
 /**
- * @type {!Element}
- */
-de.benshu.ko.grid.Grid.prototype.rootElement;
-
-/**
- * @type {?Element}
- */
-de.benshu.ko.grid.Grid.prototype.element;
-
-/**
- * @param {function()} callback
- */
-de.benshu.ko.grid.Grid.prototype.postApplyBindings = function (callback) {};
-
-/**
  * @type {de.benshu.ko.grid.Columns<I, V, O>}
  */
 de.benshu.ko.grid.Grid.prototype.columns;
-
-/**
- * @type {de.benshu.ko.grid.Headers<I, V, O>}
- */
-de.benshu.ko.grid.Grid.prototype.headers;
 
 /**
  * @type {de.benshu.ko.grid.Data<I, V, O>}
@@ -36,11 +16,37 @@ de.benshu.ko.grid.Grid.prototype.headers;
 de.benshu.ko.grid.Grid.prototype.data;
 
 /**
- * @type {de.benshu.ko.grid.Layout}
+ * @type {?Element}
  */
-de.benshu.ko.grid.Grid.prototype.layout;
+de.benshu.ko.grid.Grid.prototype.element;
 
 /**
  * @type {Object}
  */
 de.benshu.ko.grid.Grid.prototype.extensions;
+
+/**
+ * @type {de.benshu.ko.grid.Headers<I, V, O>}
+ */
+de.benshu.ko.grid.Grid.prototype.headers;
+
+/**
+ * @type {de.benshu.ko.grid.Layout}
+ */
+de.benshu.ko.grid.Grid.prototype.layout;
+
+/**
+ * @type {!Element}
+ */
+de.benshu.ko.grid.Grid.prototype.rootElement;
+
+/**
+ * @param {string|function(KeyboardEvent)} selectorOrHandler
+ * @param {function(KeyboardEvent)=} handler
+ */
+de.benshu.ko.grid.Grid.prototype.onKeyDown = function (selectorOrHandler, handler) {};
+
+/**
+ * @param {function()} callback
+ */
+de.benshu.ko.grid.Grid.prototype.postApplyBindings = function (callback) {};

@@ -3,21 +3,68 @@
 define(['onefold-js', 'onefold-dom'], function (js, dom) {
     /** @constructor */
     function ApplicationEvent(originalEvent) {
-        var applicationDefaultPrevented = originalEvent.defaultPrevented;
+        var commonProperties = ['altKey', 'bubbles', 'cancelable', 'ctrlKey', 'currentTarget', 'detail',
+            'eventPhase', 'metaKey', 'relatedTarget', 'shiftKey', 'target', 'timeStamp', 'type', 'view',
+            'which'];
+        var typeProperties = {
+            'key': ['char', 'charCode', 'key', 'keyCode'],
+            'mouse': ['button', 'buttons', 'clientX', 'clientY', 'offsetX', 'offsetY', 'pageX', 'pageY',
+                'screenX', 'screenY', 'toElement']
+        };
 
-        js.objects.extend(this, originalEvent, {
-            preventDefault: function () {
-                applicationDefaultPrevented = true;
-                return originalEvent.preventDefault();
-            },
-            preventApplicationButAllowBrowserDefault: function () {
-                applicationDefaultPrevented = true;
-            },
-            get defaultPrevented() {
-                return applicationDefaultPrevented;
-            }
-        });
+        var properties = commonProperties
+            .concat(typeProperties[originalEvent.type.substr(0, 3)] || [])
+            .concat(typeProperties[originalEvent.type.substr(0, 5)] || []);
+
+        this.__originalEvent = originalEvent;
+        this.__applicationDefaultPrevented = originalEvent.defaultPrevented;
+
+        properties.forEach(p => Object.defineProperty(this, p, {
+            get: function () { return originalEvent[p]; }
+        }));
+
+        //function ApplicationEvent() {
+        //    var applicationDefaultPrevented = originalEvent.defaultPrevented;
+        //
+        //    js.objects.extend(this, {
+        //        preventDefault: function () {
+        //            applicationDefaultPrevented = true;
+        //            return originalEvent.preventDefault();
+        //        },
+        //        preventApplicationButAllowBrowserDefault: function () {
+        //            applicationDefaultPrevented = true;
+        //        },
+        //        get defaultPrevented() {
+        //            return applicationDefaultPrevented;
+        //        }
+        //    });
+        //}
+        //
+        //// While this isn't great performance-wise, copying properties manually
+        //// probably would not be either. Unless one wrote a special constructor
+        //// per event type, perhaps.
+        //ApplicationEvent.prototype = originalEvent;
+        //
+        //return new ApplicationEvent();
     }
+
+    ApplicationEvent.prototype = {
+        preventDefault: function () {
+            this.__applicationDefaultPrevented = true;
+            return this.__originalEvent.preventDefault();
+        },
+        preventApplicationButAllowBrowserDefault: function () {
+            this.__applicationDefaultPrevented = true;
+        },
+        get defaultPrevented() {
+            return this.__applicationDefaultPrevented;
+        }
+    };
+    ApplicationEvent.prototype = js.objects.extend({}, {
+        get'defaultPrevented'() { return this.defaultPrevented; },
+        'preventDefault': ApplicationEvent.prototype.preventDefault,
+        'preventApplicationButAllowBrowserDefault': ApplicationEvent.prototype.preventApplicationButAllowBrowserDefault
+    }, ApplicationEvent.prototype);
 
     /** @constructor */
     function ApplicationEventHandler(handler, selector) {
@@ -26,7 +73,7 @@ define(['onefold-js', 'onefold-dom'], function (js, dom) {
     }
 
     /** @constructor */
-     function ApplicationEventDispatcher(argumentsSupplier) {
+    function ApplicationEventDispatcher(argumentsSupplier) {
         argumentsSupplier = argumentsSupplier || (event => [event]);
 
         var handlers = [];
@@ -36,6 +83,15 @@ define(['onefold-js', 'onefold-dom'], function (js, dom) {
             handler = arguments.length > 1 ? handler : selectorOrHandler;
 
             handlers.push(new ApplicationEventHandler(handler, selector));
+
+            return {
+                dispose: () => {
+                    if (handler) {
+                        handlers.splice(handlers.indexOf(handler), 1);
+                        handler = null;
+                    }
+                }
+            };
         };
 
         this.relativeToClosest = function (ancestorSelector) {
@@ -79,4 +135,5 @@ define(['onefold-js', 'onefold-dom'], function (js, dom) {
     }
 
     return ApplicationEventDispatcher;
-});
+})
+;

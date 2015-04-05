@@ -3,7 +3,165 @@
  * License: BSD 3-clause (http://opensource.org/licenses/BSD-3-Clause)
  */
 define(['onefold-dom', 'indexed-list', 'stringifyable', 'onefold-lists', 'onefold-js', 'ko-data-source', 'ko-indexed-repeat', 'knockout'],    function(onefold_dom, indexed_list, stringifyable, onefold_lists, onefold_js, ko_data_source, ko_indexed_repeat, knockout) {
-var ko_grid_template, text, text_ko_grid_columnshtmltemplate, ko_grid_columns, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate, ko_grid_data, text_ko_grid_headershtmltemplate, ko_grid_headers, ko_grid_layout, ko_grid_core, ko_grid_extensions, text_ko_grid_gridhtmltemplate, ko_grid_binding, ko_grid;
+var ko_grid_application_event_dispatcher, ko_grid_template, text, text_ko_grid_columnshtmltemplate, ko_grid_columns, text_ko_grid_datahtmltemplate, ko_grid_data, text_ko_grid_headershtmltemplate, ko_grid_headers, ko_grid_layout, ko_grid_core, ko_grid_extensions, text_ko_grid_gridhtmltemplate, ko_grid_binding, ko_grid;
+
+ko_grid_application_event_dispatcher = function (js, dom) {
+  /** @constructor */
+  function ApplicationEvent(originalEvent) {
+    var commonProperties = [
+      'altKey',
+      'bubbles',
+      'cancelable',
+      'ctrlKey',
+      'currentTarget',
+      'detail',
+      'eventPhase',
+      'metaKey',
+      'relatedTarget',
+      'shiftKey',
+      'target',
+      'timeStamp',
+      'type',
+      'view',
+      'which'
+    ];
+    var typeProperties = {
+      'key': [
+        'char',
+        'charCode',
+        'key',
+        'keyCode'
+      ],
+      'mouse': [
+        'button',
+        'buttons',
+        'clientX',
+        'clientY',
+        'offsetX',
+        'offsetY',
+        'pageX',
+        'pageY',
+        'screenX',
+        'screenY',
+        'toElement'
+      ]
+    };
+    var properties = commonProperties.concat(typeProperties[originalEvent.type.substr(0, 3)] || []).concat(typeProperties[originalEvent.type.substr(0, 5)] || []);
+    this.__originalEvent = originalEvent;
+    this.__applicationDefaultPrevented = originalEvent.defaultPrevented;
+    properties.forEach(function (p) {
+      return Object.defineProperty(this, p, {
+        get: function () {
+          return originalEvent[p];
+        }
+      });
+    }.bind(this));  //function ApplicationEvent() {
+                    //    var applicationDefaultPrevented = originalEvent.defaultPrevented;
+                    //
+                    //    js.objects.extend(this, {
+                    //        preventDefault: function () {
+                    //            applicationDefaultPrevented = true;
+                    //            return originalEvent.preventDefault();
+                    //        },
+                    //        preventApplicationButAllowBrowserDefault: function () {
+                    //            applicationDefaultPrevented = true;
+                    //        },
+                    //        get defaultPrevented() {
+                    //            return applicationDefaultPrevented;
+                    //        }
+                    //    });
+                    //}
+                    //
+                    //// While this isn't great performance-wise, copying properties manually
+                    //// probably would not be either. Unless one wrote a special constructor
+                    //// per event type, perhaps.
+                    //ApplicationEvent.prototype = originalEvent;
+                    //
+                    //return new ApplicationEvent();
+  }
+  ApplicationEvent.prototype = {
+    preventDefault: function () {
+      this.__applicationDefaultPrevented = true;
+      return this.__originalEvent.preventDefault();
+    },
+    preventApplicationButAllowBrowserDefault: function () {
+      this.__applicationDefaultPrevented = true;
+    },
+    get defaultPrevented() {
+      return this.__applicationDefaultPrevented;
+    }
+  };
+  ApplicationEvent.prototype = js.objects.extend({}, {
+    get 'defaultPrevented'() {
+      return this.defaultPrevented;
+    },
+    'preventDefault': ApplicationEvent.prototype.preventDefault,
+    'preventApplicationButAllowBrowserDefault': ApplicationEvent.prototype.preventApplicationButAllowBrowserDefault
+  }, ApplicationEvent.prototype);
+  /** @constructor */
+  function ApplicationEventHandler(handler, selector) {
+    this.handler = handler;
+    this.selector = selector;
+  }
+  /** @constructor */
+  function ApplicationEventDispatcher(argumentsSupplier) {
+    argumentsSupplier = argumentsSupplier || function (event) {
+      return [event];
+    };
+    var handlers = [];
+    this.registerHandler = function (selectorOrHandler, handler) {
+      var selector = arguments.length > 1 ? selectorOrHandler : undefined;
+      handler = arguments.length > 1 ? handler : selectorOrHandler;
+      handlers.push(new ApplicationEventHandler(handler, selector));
+      return {
+        dispose: function () {
+          if (handler) {
+            handlers.splice(handlers.indexOf(handler), 1);
+            handler = null;
+          }
+        }
+      };
+    };
+    this.relativeToClosest = function (ancestorSelector) {
+      return {
+        dispatch: function (event) {
+          var closestAncestor = dom.element.closest(event.target, ancestorSelector);
+          if (closestAncestor) {
+            var applicationEvent = new ApplicationEvent(event);
+            dispatch(closestAncestor, applicationEvent, argumentsSupplier(applicationEvent, closestAncestor));
+          }
+        }
+      };
+    };
+    function dispatch(root, event, handlerArguments) {
+      function findDeepestMatch(selector) {
+        var matches = Array.prototype.slice.call(root.querySelectorAll(selector)).filter(function (match) {
+          return dom.isOrContains(match, event.target);
+        });
+        return matches.length ? matches[matches.length - 1] : undefined;
+      }
+      var determineDepth = dom.determineDepth.bind(null, root);
+      var handlersAndTheirMatches = handlers.map(function (candidate) {
+        var match = candidate.selector ? findDeepestMatch(candidate.selector) : root;
+        return {
+          handler: candidate.handler,
+          match: match,
+          depth: match ? determineDepth(match) : -1
+        };
+      });
+      var applicableHandlers = handlersAndTheirMatches.filter(function (candidate) {
+        return !!candidate.match;
+      });
+      js.arrays.stableSort(applicableHandlers, function (a, b) {
+        return b.depth - a.depth;
+      });
+      applicableHandlers.forEach(function (h) {
+        h.handler.apply(root, handlerArguments);
+      });
+    }
+  }
+  return ApplicationEventDispatcher;
+}(onefold_js, onefold_dom);
 
 ko_grid_template = function () {
   var PLACEHOLDER_KIND_REGULAR = 1;
@@ -288,107 +446,37 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
       this.renderValue = override(this.renderValue);
     }.bind(this);
     this.overrideValueBinding = function (override) {
-      var overridden = this._overrideValueBinding(override);
+      var overridden = this._overrideValueBinding(override, {
+        init: this._initCell,
+        update: this._updateCell
+      });
       if (!overridden || !overridden.init || !overridden.update)
         throw new Error('The cell value binding must define an `init` as well as an `update` method.');
       this._initCell = overridden.init;
       this._updateCell = overridden.update;
     }.bind(this);
-    this._overrideValueBinding = function (override) {
+    this._overrideValueBinding = function (override, current) {
       var overridden = override(js.objects.extend({
-        init: this._initCell,
-        update: this._updateCell
+        init: current.init,
+        update: current.update
       }, {
-        'init': this._initCell,
-        'update': this._updateCell
+        'init': current.init,
+        'update': current.update
       }));
       return {
         init: overridden.init || overridden['init'],
         update: overridden.update || overridden['update']
       };
-    }.bind(this);
+    };
     this['overrideValueRendering'] = this.overrideValueRendering;
     this['overrideValueBinding'] = this.overrideValueBinding;
   }
   return columns;
 }(knockout, onefold_js, text_ko_grid_columnshtmltemplate);
-
-ko_grid_application_event_dispatcher = function (js, dom) {
-  /** @constructor */
-  function ApplicationEvent(originalEvent) {
-    var applicationDefaultPrevented = originalEvent.defaultPrevented;
-    js.objects.extend(this, originalEvent, {
-      preventDefault: function () {
-        applicationDefaultPrevented = true;
-        return originalEvent.preventDefault();
-      },
-      preventApplicationButAllowBrowserDefault: function () {
-        applicationDefaultPrevented = true;
-      },
-      get defaultPrevented() {
-        return applicationDefaultPrevented;
-      }
-    });
-  }
-  /** @constructor */
-  function ApplicationEventHandler(handler, selector) {
-    this.handler = handler;
-    this.selector = selector;
-  }
-  /** @constructor */
-  function ApplicationEventDispatcher(argumentsSupplier) {
-    argumentsSupplier = argumentsSupplier || function (event) {
-      return [event];
-    };
-    var handlers = [];
-    this.registerHandler = function (selectorOrHandler, handler) {
-      var selector = arguments.length > 1 ? selectorOrHandler : undefined;
-      handler = arguments.length > 1 ? handler : selectorOrHandler;
-      handlers.push(new ApplicationEventHandler(handler, selector));
-    };
-    this.relativeToClosest = function (ancestorSelector) {
-      return {
-        dispatch: function (event) {
-          var closestAncestor = dom.element.closest(event.target, ancestorSelector);
-          if (closestAncestor) {
-            var applicationEvent = new ApplicationEvent(event);
-            dispatch(closestAncestor, applicationEvent, argumentsSupplier(applicationEvent, closestAncestor));
-          }
-        }
-      };
-    };
-    function dispatch(root, event, handlerArguments) {
-      function findDeepestMatch(selector) {
-        var matches = Array.prototype.slice.call(root.querySelectorAll(selector)).filter(function (match) {
-          return dom.isOrContains(match, event.target);
-        });
-        return matches.length ? matches[matches.length - 1] : undefined;
-      }
-      var determineDepth = dom.determineDepth.bind(null, root);
-      var handlersAndTheirMatches = handlers.map(function (candidate) {
-        var match = candidate.selector ? findDeepestMatch(candidate.selector) : root;
-        return {
-          handler: candidate.handler,
-          match: match,
-          depth: match ? determineDepth(match) : -1
-        };
-      });
-      var applicableHandlers = handlersAndTheirMatches.filter(function (candidate) {
-        return !!candidate.match;
-      });
-      js.arrays.stableSort(applicableHandlers, function (a, b) {
-        return b.depth - a.depth;
-      });
-      applicableHandlers.forEach(function (h) {
-        h.handler.apply(root, handlerArguments);
-      });
-    }
-  }
-  return ApplicationEventDispatcher;
-}(onefold_js, onefold_dom);
 text_ko_grid_datahtmltemplate = '<tbody class="ko-grid-tbody" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n    <tr class="ko-grid-tr ko-grid-row"\n        data-bind="indexedRepeat: {\n            forEach: data.rows.displayed,\n            indexedBy: function(r) { return grid.data.observableValueSelector(ko.unwrap(r[grid.primaryKey])); },\n            as: \'row\',\n            at: \'rowIndex\',\n            beforeElementRecycling: data.rows.__handleElementRecycling,\n            afterElementRecycled: data.rows.__handleElementRecycled,\n            allowDeviation: true,\n            onDeviation: data.rows.__handleDisplayedRowsDeviate,\n            onSynchronization: data.rows.__handleDisplayedRowsSynchronized }"\n        data-repeat-bind="__gridRow: { classify: grid.data.rows.__classify, row: row, index: rowIndex }">\n\n        <td data-bind="indexedRepeat: { forEach: columns.displayed, indexedBy: \'id\', as: \'column\', allowElementRecycling: false }"\n            data-repeat-bind="__gridCell: { row: row, column: column }"></td>\n    </tr>\n</tbody>';
 
 ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, dataTemplate) {
+  var TEXT_NODE = window.Node.TEXT_NODE;
   var ELEMENT_NODE = window.Node.ELEMENT_NODE;
   var HIJACKED_KEY = '__@__hijacked';
   var document = window.document;
@@ -555,25 +643,35 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       }
       throw new Error('Column `' + n + '` does not exist.');
     };
-    var hijacks = [];
-    this.rows['__handleElementRecycling'] = function (element) {
-      Array.prototype.slice.call(element.querySelectorAll('.ko-grid-cell')).forEach(function (c) {
-        return c[HIJACKED_KEY] = null;
+    var hijackCount = 0;
+    var hijacks = {};
+    this.rows['__handleElementRecycling'] = function (element, bindingContext) {
+      withHijacksOf(element, bindingContext, function (cell, row, column) {
+        cell[HIJACKED_KEY] = null;
+        initCellElement(cell, row, column);
       });
     };
     this.rows['__handleElementRecycled'] = function (element, bindingContext) {
+      withHijacksOf(element, bindingContext, function (cell, row, column, hijack) {
+        hijack.element = cell;
+        hijack.row = row;
+        cell[HIJACKED_KEY] = hijack;
+        initCellElement(cell, row, column);
+        // TODO This update might have dependencies that won't get tracked.. (same below)
+        updateCellElement(cell, row, column);
+      });
+    };
+    var withHijacksOf = function (rowElement, bindingContext, action) {
+      if (!hijackCount)
+        return;
       var row = bindingContext['row']();
       var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
       if (js.objects.hasOwn(hijacks, rowId)) {
-        hijacks[rowId].forEach(function (h) {
-          var column = h.column;
+        hijacks[rowId].forEach(function (hijack) {
+          var column = hijack.column;
           var columnIndex = grid.columns.displayed().indexOf(column);
-          var cell = element.children[columnIndex];
-          h.element = cell;
-          cell[HIJACKED_KEY] = h;
-          if (h.init)
-            initCellElement(cell, row, column);
-          updateCellElement(cell, row, column);
+          var cell = rowElement.children[columnIndex];
+          action(cell, row, column, hijack);
         });
       }
     }.bind(this);
@@ -582,35 +680,40 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       var rowIndex = this.rows.displayed().tryFirstIndexOf(row);
       var columnIndex = grid.columns.displayed().indexOf(column);
       var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
-      function hijack(classes, override) {
+      function hijack(override) {
         if (element[HIJACKED_KEY])
           throw new Error('Illegal state: This cell is already hijacked.');
         var binding = column._overrideValueBinding(override || function (b) {
           return b;
+        }, {
+          init: column._initCell || defaultInit,
+          update: column._updateCell || defaultUpdate
         });
         var hijacked = element[HIJACKED_KEY] = {
           element: element,
+          row: row,
           column: column,
-          classes: classes,
           init: binding.init,
           update: binding.update
         };
         var rowHijacks = hijacks[rowId] = hijacks[rowId] || [];
         rowHijacks.push(hijacked);
-        if (hijacked.init)
-          initCellElement(element, row, column);
+        ++hijackCount;
+        initCellElement(element, row, column);
         updateCellElement(element, row, column);
         function release() {
           if (rowHijacks.length === 1)
             delete hijacks[rowId];
           else
             rowHijacks.splice(rowHijacks.indexOf(hijacked), 1);
+          --hijackCount;
           if (hijacked.element[HIJACKED_KEY] !== hijacked)
             return;
           // the element was recycled for another entry
           hijacked.element[HIJACKED_KEY] = null;
-          initCellElement(hijacked.element, row, column);
-          updateCellElement(hijacked.element, row, column);
+          initCellElement(hijacked.element, hijacked.row, hijacked.column);
+          // TODO This update might have dependencies that won't get tracked.. (same above)
+          updateCellElement(hijacked.element, hijacked.row, hijacked.column);
         }
         return js.objects.extend({
           release: release,
@@ -671,26 +774,26 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
     var hijacked = element[HIJACKED_KEY];
     while (element.firstChild)
       ko.removeNode(element.firstChild);
-    if (hijacked && hijacked.init)
-      hijacked.init(element, row, column);
-    if (column._initCell)
-      column._initCell(element, row, column);
-    else
-      element.appendChild(document.createTextNode(''));
+    var init = hijacked && hijacked.init || column._initCell || defaultInit;
+    init(element, row, column);
   }
   function updateCellElement(element, row, column) {
     var cell = row[column.property];
-    var cellValue = cell && ko.unwrap(cell);
     var hijacked = element[HIJACKED_KEY];
     // TODO since there may be thousands of cells we want to keep the dependency count at two (row+cell) => peek => need separate change handler for cellClasses
     var columnClasses = column.cellClasses.peek().join(' ');
-    element.className = 'ko-grid-td ko-grid-cell ' + columnClasses + (hijacked ? ' ' + hijacked.classes : '');
-    if (hijacked && hijacked.update)
-      hijacked.update(element, cell, row, column);
-    if (column._initCell)
-      column._updateCell(element, cell, row, column);
-    else
-      element.lastChild.nodeValue = column.renderValue(cellValue);
+    element.className = 'ko-grid-td ko-grid-cell ' + columnClasses;
+    var update = hijacked && hijacked.update || column._updateCell || defaultUpdate;
+    update(element, cell, row, column);
+  }
+  function defaultInit(element) {
+    element.insertBefore(document.createTextNode(''), element.firstChild);
+  }
+  function defaultUpdate(element, cell, row, column) {
+    var child = element.firstChild;
+    while (child.nodeType !== TEXT_NODE)
+      child = child.nextSibling;
+    child.nodeValue = column.renderValue(ko.unwrap(cell));
   }
   return data;
 }(knockout, onefold_js, stringifyable, ko_grid_application_event_dispatcher, text_ko_grid_datahtmltemplate);
@@ -1168,7 +1271,7 @@ ko_grid_extensions = function (ko, js) {
 }(knockout, onefold_js);
 text_ko_grid_gridhtmltemplate = '<div class="ko-grid">\n    <!--before:grid-->\n    <div class="ko-grid-table-container">\n        <!--before:table-->\n        <div class="ko-grid-table-scroller-padding">\n            <div class="ko-grid-table-scroller">\n                <table class="ko-grid-table" data-bind="_gridWidth: columns.combinedWidth() + \'px\'">\n                    <!--columns-->\n                    <!--head-->\n                    <tfoot class="ko-grid-tfoot" data-bind="_gridWidth: columns.combinedWidth() + \'px\'"><!--tfoot--></tfoot>\n                    <!--body-->\n                </table>\n            </div>\n        </div>\n        <!--after:table-->\n    </div>\n    <!--after:grid-->\n</div>';
 
-ko_grid_binding = function (req, ko, js) {
+ko_grid_binding = function (req, ko, js, ApplicationEventDispatcher) {
   var require = req;
   var document = window.document;
   var koGrid = ko.bindingHandlers['grid'] = ko.bindingHandlers['grid'] || {};
@@ -1215,6 +1318,13 @@ ko_grid_binding = function (req, ko, js) {
         callback();
       };
     }.bind(this);
+    var onKeyDownDispatcher = new ApplicationEventDispatcher();
+    this.onKeyDown = onKeyDownDispatcher.registerHandler.bind(onKeyDownDispatcher);
+    this['onKeyDown '] = this.onKeyDown;
+    rootElement.addEventListener('keydown', function (e) {
+      onKeyDownDispatcher.relativeToClosest('.ko-grid').dispatch(e);
+      return !e.defaultPrevented;
+    });
   }
   ko.bindingHandlers['grid']['init'] = function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
     var bindingValue = valueAccessor();
@@ -1243,8 +1353,8 @@ ko_grid_binding = function (req, ko, js) {
       var gridExtensions = grid['extensions'] = grid.extensions = {};
       extensionLoadOrder.forEach(function (extensionName) {
         var extension = koGrid.lookUpExtension(extensionName);
-        var extensionConfig = extension.extractConfiguration(extensionConfigs, configName);
         var extensionBindingValue = extension.tryExtractBindingValue(extensionBindingValues) || {};
+        var extensionConfig = apply(extension.extractConfiguration(extensionConfigs, configName), extensionBindingValue, bindingValue);
         if (extensionConfig['enabled'] === false && extensionBindingValue['enabled'] !== true || extensionBindingValue['enabled'] === false)
           return;
         extension.dependencies.forEach(function (dependency) {
@@ -1275,6 +1385,13 @@ ko_grid_binding = function (req, ko, js) {
       grid.__postApplyBindings();
       grid.__postApplyBindings = null;
     });
+    /**
+     * @param {...*} config
+     * @return {?}
+     */
+    function apply(config) {
+      return typeof config === 'function' ? config.apply(undefined, Array.prototype.slice.call(arguments, 1)) : config;
+    }
     return { 'controlsDescendantBindings': true };
   };
   ko.bindingHandlers['grid']['update'] = function () {
@@ -1332,7 +1449,7 @@ ko_grid_binding = function (req, ko, js) {
     }
   };
   return koGrid;
-}(req, knockout, onefold_js);
+}(req, knockout, onefold_js, ko_grid_application_event_dispatcher);
 ko_grid = function (main) {
   return main;
 }(ko_grid_binding);return ko_grid;

@@ -5,21 +5,6 @@
 de.benshu.ko.grid.Data = function () {};
 
 /**
- * @type {function(?):?}
- */
-de.benshu.ko.grid.Data.prototype.observableValueSelector;
-
-/**
- * @type {function(?):?}
- */
-de.benshu.ko.grid.Data.prototype.valueSelector;
-
-/**
- * @type {ko.Subscribable<function(V):boolean>}
- */
-de.benshu.ko.grid.Data.prototype.predicate;
-
-/**
  * @type {ko.Subscribable<function(V, V):number>}
  */
 de.benshu.ko.grid.Data.prototype.comparator;
@@ -27,12 +12,32 @@ de.benshu.ko.grid.Data.prototype.comparator;
 /**
  * @type {ko.Subscribable<number>}
  */
-de.benshu.ko.grid.Data.prototype.offset;
+de.benshu.ko.grid.Data.prototype.limit;
+
+/**
+ * @type {function(?):?}
+ */
+de.benshu.ko.grid.Data.prototype.observableValueSelector;
 
 /**
  * @type {ko.Subscribable<number>}
  */
-de.benshu.ko.grid.Data.prototype.limit;
+de.benshu.ko.grid.Data.prototype.offset;
+
+/**
+ * @type {ko.Subscribable<function(V):boolean>}
+ */
+de.benshu.ko.grid.Data.prototype.predicate;
+
+/**
+ * @type {function(?):?}
+ */
+de.benshu.ko.grid.Data.prototype.valueSelector;
+
+/**
+ * @type {de.benshu.ko.dataSource.View<?, ?>}
+ */
+de.benshu.ko.grid.Data.prototype.view;
 
 /**
  * @param {O} row
@@ -48,9 +53,10 @@ de.benshu.ko.grid.Data.prototype.lookupCell = function (row, column) {};
 de.benshu.ko.grid.Data.prototype.onCellClick = function (selectorOrHandler, handler) {};
 
 /**
- * @type {de.benshu.ko.dataSource.View<?, ?>}
+ * @param {string|function(MouseEvent, ?, O, de.benshu.ko.grid.Column)} selectorOrHandler
+ * @param {function(MouseEvent, ?, O, de.benshu.ko.grid.Column)} handler
  */
-de.benshu.ko.grid.Data.prototype.view;
+de.benshu.ko.grid.Data.prototype.onCellDoubleClick = function (selectorOrHandler, handler) {};
 
 /**
  * @constructor

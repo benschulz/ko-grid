@@ -3,6 +3,7 @@
 define([
     'knockout', 'onefold-js', 'stringifyable', './application-event-dispatcher', 'text!ko-grid/data.html.template'
 ], function (ko, js, stringifyable, ApplicationEventDispatcher, dataTemplate) {
+    var TEXT_NODE = window.Node.TEXT_NODE;
     var ELEMENT_NODE = window.Node.ELEMENT_NODE;
     var HIJACKED_KEY = '__@__hijacked';
 
@@ -176,27 +177,40 @@ define([
             throw new Error('Column `' + n + '` does not exist.');
         };
 
-        var hijacks = [];
+        var hijackCount = 0;
+        var hijacks = {};
 
-        this.rows['__handleElementRecycling'] = element => {
-            Array.prototype.slice.call(element.querySelectorAll('.ko-grid-cell')).forEach(c => c[HIJACKED_KEY] = null);
+        this.rows['__handleElementRecycling'] = (element, bindingContext) => {
+            withHijacksOf(element, bindingContext, (cell, row, column) => {
+                cell[HIJACKED_KEY] = null;
+                initCellElement(cell, row, column);
+            });
         };
         this.rows['__handleElementRecycled'] = (element, bindingContext) => {
+            withHijacksOf(element, bindingContext, (cell, row, column, hijack) => {
+                hijack.element = cell;
+                hijack.row = row;
+                cell[HIJACKED_KEY] = hijack;
+                initCellElement(cell, row, column);
+                // TODO This update might have dependencies that won't get tracked.. (same below)
+                updateCellElement(cell, row, column);
+            });
+        };
+
+        var withHijacksOf = (rowElement, bindingContext, action) => {
+            if (!hijackCount)
+                return;
+
             var row = bindingContext['row']();
             var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
 
             if (js.objects.hasOwn(hijacks, rowId)) {
-                hijacks[rowId].forEach(h => {
-                    var column = h.column;
+                hijacks[rowId].forEach(hijack => {
+                    var column = hijack.column;
                     var columnIndex = grid.columns.displayed().indexOf(column);
-                    var cell = element.children[columnIndex];
+                    var cell = rowElement.children[columnIndex];
 
-                    h.element = cell;
-                    cell[HIJACKED_KEY] = h;
-                    if (h.init)
-                        initCellElement(cell, row, column);
-                    updateCellElement(cell, row, column);
-
+                    action(cell, row, column, hijack);
                 });
             }
         };
@@ -208,24 +222,28 @@ define([
 
             var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
 
-            function hijack(classes, override) {
+            function hijack(override) {
                 if (element[HIJACKED_KEY])
                     throw new Error('Illegal state: This cell is already hijacked.');
 
-                var binding = column._overrideValueBinding(override || (b => b));
+                var binding = column._overrideValueBinding(override || (b => b), {
+                    init: column._initCell || defaultInit,
+                    update: column._updateCell || defaultUpdate
+                });
+
                 var hijacked = element[HIJACKED_KEY] = {
                     element: element,
+                    row: row,
                     column: column,
-                    classes: classes,
                     init: binding.init,
                     update: binding.update
                 };
 
                 var rowHijacks = hijacks[rowId] = hijacks[rowId] || [];
                 rowHijacks.push(hijacked);
+                ++hijackCount;
 
-                if (hijacked.init)
-                    initCellElement(element, row, column);
+                initCellElement(element, row, column);
                 updateCellElement(element, row, column);
 
                 function release() {
@@ -233,13 +251,15 @@ define([
                         delete hijacks[rowId];
                     else
                         rowHijacks.splice(rowHijacks.indexOf(hijacked), 1);
+                    --hijackCount;
 
                     if (hijacked.element[HIJACKED_KEY] !== hijacked)
                         return; // the element was recycled for another entry
 
                     hijacked.element[HIJACKED_KEY] = null;
-                    initCellElement(hijacked.element, row, column);
-                    updateCellElement(hijacked.element, row, column);
+                    initCellElement(hijacked.element, hijacked.row, hijacked.column);
+                    // TODO This update might have dependencies that won't get tracked.. (same above)
+                    updateCellElement(hijacked.element, hijacked.row, hijacked.column);
                 }
 
                 return js.objects.extend({
@@ -303,30 +323,32 @@ define([
         while (element.firstChild)
             ko.removeNode(element.firstChild);
 
-        if (hijacked && hijacked.init)
-            hijacked.init(element, row, column);
-        if (column._initCell)
-            column._initCell(element, row, column);
-        else
-            element.appendChild(document.createTextNode(''));
+        var init = hijacked && hijacked.init || column._initCell || defaultInit;
+        init(element, row, column);
     }
 
     function updateCellElement(element, row, column) {
         var cell = row[column.property];
-        var cellValue = cell && ko.unwrap(cell);
 
         var hijacked = element[HIJACKED_KEY];
 
         // TODO since there may be thousands of cells we want to keep the dependency count at two (row+cell) => peek => need separate change handler for cellClasses
         var columnClasses = column.cellClasses.peek().join(' ');
-        element.className = 'ko-grid-td ko-grid-cell ' + columnClasses + (hijacked ? ' ' + hijacked.classes : '');
+        element.className = 'ko-grid-td ko-grid-cell ' + columnClasses;
 
-        if (hijacked && hijacked.update)
-            hijacked.update(element, cell, row, column);
-        if (column._initCell)
-            column._updateCell(element, cell, row, column);
-        else
-            element.lastChild.nodeValue = column.renderValue(cellValue);
+        var update = hijacked && hijacked.update || column._updateCell || defaultUpdate;
+        update(element, cell, row, column);
+    }
+
+    function defaultInit(element) {
+        element.insertBefore(document.createTextNode(''), element.firstChild);
+    }
+
+    function defaultUpdate(element, cell, row, column) {
+        var child = element.firstChild;
+        while (child.nodeType !== TEXT_NODE)
+            child = child.nextSibling;
+        child.nodeValue = column.renderValue(ko.unwrap(cell));
     }
 
     return data;
