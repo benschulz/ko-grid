@@ -16,9 +16,11 @@ The ko-grid component itself is only a base to be built upon. As such it provide
 ### Extensions
 
  - [**aggregate**](https://github.com/benschulz/ko-grid-aggregate). Display aggregate information in the grid's footer.
+ - [**cell-navigation**](https://github.com/benschulz/ko-grid-cell-navigation). Navigate the grid using arrow keys, enter and tab.
  - [**column-resizing**](https://github.com/benschulz/ko-grid-column-resizing). Let the user resize columns by dragging its right border.
  - [**column-scaling**](https://github.com/benschulz/ko-grid-column-scaling). Have the column widths scale to fit the grid width when extra space is available.
  - [**column-width-persistence**](https://github.com/benschulz/ko-grid-column-width-persistence). Users' column width adjustments are remembered.
+ - [**editing**](https://github.com/benschulz/ko-grid-editing). Edit cell values Excel-style.
  - [**export**](https://github.com/benschulz/ko-grid-export). Offer an export of the grid's data as an excel sheet.
  - [**filtering**](https://github.com/benschulz/ko-grid-filtering). Let users filter rows based on per-column criteria.
  - [**full-screen**](https://github.com/benschulz/ko-grid-full-screen). Offer a full screen mode to let users take advantage of space usually occupied by other components.
