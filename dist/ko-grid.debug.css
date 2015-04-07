@@ -112,16 +112,10 @@
   background-color: #eef6fc;
 }
 .ko-grid-row:hover {
-  background: transparent -webkit-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-  background: transparent -moz-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-  background: transparent -ms-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-  background: transparent -o-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-}
-.alternate.ko-grid-row:hover {
-  background: #eef6fc -webkit-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-  background: #eef6fc -moz-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-  background: #eef6fc -ms-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
-  background: #eef6fc -o-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background-image: -webkit-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background-image: -moz-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background-image: -ms-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
+  background-image: -o-linear-gradient(bottom, rgba(55, 88, 128, 0.2) 0, transparent 66%);
 }
 /* ALIGNMENT */
 .ko-grid-column-header,

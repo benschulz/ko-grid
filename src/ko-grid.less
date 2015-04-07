@@ -4,11 +4,11 @@
 .animation (@animation) { -webkit-animation: @animation; animation: @animation; }
 .box-sizing(@box) { -webkit-box-sizing: @box; -moz-box-sizing: @box; box-sizing: @box; }
 .border-box() { .box-sizing(border-box); }
-.additive-vertical-gradient (@base, @gradient) {
-  background: @base -webkit-linear-gradient(bottom, @gradient);
-  background: @base -moz-linear-gradient(bottom, @gradient);
-  background: @base -ms-linear-gradient(bottom, @gradient);
-  background: @base -o-linear-gradient(bottom, @gradient);
+.vertical-gradient (@gradient) {
+  background-image: -webkit-linear-gradient(bottom, @gradient);
+  background-image: -moz-linear-gradient(bottom, @gradient);
+  background-image: -ms-linear-gradient(bottom, @gradient);
+  background-image: -o-linear-gradient(bottom, @gradient);
 }
 
 .ko-grid { .border-box(); width: 100%; height: 100%; overflow: visible; }
@@ -39,9 +39,8 @@
 .ko-grid-table-scroller-padding { border-style: solid; border-top-color: @header-background-color; border-bottom-color: white; }
 .ko-grid-thead { background-color: @header-background-color; }
 .alternate.ko-grid-row { background-color: @alternating-row-background-color; }
-.ko-grid-row-hover-gradient (@base) { .additive-vertical-gradient(@base; fade(@hovering-row-background-color, 20%) 0, transparent 66%); }
-.ko-grid-row:hover { .ko-grid-row-hover-gradient(transparent); }
-.alternate.ko-grid-row:hover { .ko-grid-row-hover-gradient(@alternating-row-background-color); }
+.ko-grid-row-hover-gradient (@base) {  }
+.ko-grid-row:hover { .vertical-gradient(fade(@hovering-row-background-color, 20%) 0, transparent 66%;); }
 
 /* ALIGNMENT */
 .ko-grid-column-header, .ko-grid-column-group-header { text-align: center; }
