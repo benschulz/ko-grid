@@ -65,6 +65,11 @@ de.benshu.ko.grid.Data.prototype.onCellDoubleClick = function (selectorOrHandler
 de.benshu.ko.grid.Data.Rows = function () {};
 
 /**
+ * @param {function(O):Array<string>} classifier
+ */
+de.benshu.ko.grid.Data.Rows.prototype.installClassifier = function(classifier) {};
+
+/**
  * @type {ko.Subscribable<boolean>}
  */
 de.benshu.ko.grid.Data.Rows.prototype.displayedSynchronized;

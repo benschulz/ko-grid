@@ -11,6 +11,7 @@ de.benshu.ko.grid.Columns = function () {};
  */
 de.benshu.ko.grid.Columns.prototype.byId = function (id) {};
 
+
 /**
  * @type {function():Array<de.benshu.ko.grid.Column>}
  */

@@ -124,6 +124,11 @@ de.benshu.ko.grid.Data.prototype.onCellDoubleClick = function (selectorOrHandler
 de.benshu.ko.grid.Data.Rows = function () {};
 
 /**
+ * @param {function(O):Array<string>} classifier
+ */
+de.benshu.ko.grid.Data.Rows.prototype.installClassifier = function(classifier) {};
+
+/**
  * @type {ko.Subscribable<boolean>}
  */
 de.benshu.ko.grid.Data.Rows.prototype.displayedSynchronized;
@@ -213,6 +218,7 @@ de.benshu.ko.grid.Columns = function () {};
  */
 de.benshu.ko.grid.Columns.prototype.byId = function (id) {};
 
+
 /**
  * @type {function():Array<de.benshu.ko.grid.Column>}
  */
@@ -245,6 +251,12 @@ de.benshu.ko.grid.Headers = function () {};
  * @type {ko.Subscribable<Array<de.benshu.ko.grid.Header>>}
  */
 de.benshu.ko.grid.Headers.prototype.all;
+
+/**
+ * @param {de.benshu.ko.grid.Column} column
+ * @returns {de.benshu.ko.grid.Header}
+ */
+de.benshu.ko.grid.Headers.prototype.forColumn = function (column) {};
 
 /**
  * @param {string|function(this:Element, MouseEvent, de.benshu.ko.grid.Header)} selectorOrHandler
@@ -334,6 +346,12 @@ de.benshu.ko.grid.Layout.prototype.afterRelayout = function (callback) {};
  * @param {function()} callback
  */
 de.benshu.ko.grid.Layout.prototype.beforeRelayout = function (callback) {};
+
+/**
+ * @param {string|Node} content
+ * @returns {{width:number, height:number}}
+ */
+de.benshu.ko.grid.Layout.prototype.determineCellDimensions = function (content) {};
 
 /**
  * @param {function()=} configuration
