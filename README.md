@@ -25,6 +25,7 @@ The ko-grid component itself is only a base to be built upon. As such it provide
  - [**filtering**](https://github.com/benschulz/ko-grid-filtering). Let users filter rows based on per-column criteria.
  - [**full-screen**](https://github.com/benschulz/ko-grid-full-screen). Offer a full screen mode to let users take advantage of space usually occupied by other components.
  - [**links**](https://github.com/benschulz/ko-grid-links). Have cells in a column link to other pages.
+ - [**selection**](https://github.com/benschulz/ko-grid-selection). Single- or multi-selection of rows.
  - [**sorting**](https://github.com/benschulz/ko-grid-sorting). Let users sort rows by column.
  - [**virtualization**](https://github.com/benschulz/ko-grid-virtualization). Reduce traffic and improve performance with row virtualization.
 
