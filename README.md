@@ -24,7 +24,9 @@ The ko-grid component itself is only a base to be built upon. As such it provide
  - [**export**](https://github.com/benschulz/ko-grid-export). Offer an export of the grid's data as an excel sheet.
  - [**filtering**](https://github.com/benschulz/ko-grid-filtering). Let users filter rows based on per-column criteria.
  - [**full-screen**](https://github.com/benschulz/ko-grid-full-screen). Offer a full screen mode to let users take advantage of space usually occupied by other components.
+ - [**height-adjuster**](https://github.com/benschulz/ko-grid-height-adjuster). Let users resize the grid vertically.
  - [**links**](https://github.com/benschulz/ko-grid-links). Have cells in a column link to other pages.
+ - [**paging**](https://github.com/benschulz/ko-grid-paging). Divide rows into pages.
  - [**selection**](https://github.com/benschulz/ko-grid-selection). Single- or multi-selection of rows.
  - [**sorting**](https://github.com/benschulz/ko-grid-sorting). Let users sort rows by column.
  - [**virtualization**](https://github.com/benschulz/ko-grid-virtualization). Reduce traffic and improve performance with row virtualization.
@@ -38,7 +40,6 @@ The following extensions don't provide user-oriented features directly, but rath
  - [**toolbar**](https://github.com/benschulz/ko-grid-toolbar). Displays a grid toolbar to be filled by other extensions.
  - [**view-modes**](https://github.com/benschulz/ko-grid-view-modes). Keeps track of the view mode(s) the grid is currently in (e.g. full-screen mode).
  - [**view-state-storage**](https://github.com/benschulz/ko-grid-view-state-storage). Persists view state information in (by default) the `localStorage` to be restored later.
-
 
 ## Requirements
 
@@ -75,7 +76,7 @@ Please note that entry ids *must* be strings as they are used as keys in object 
 **Required**. An array of column definitions.
 
 ```javascript
-{
+columns: [{
     // Required.
     id: 'sampleColumnId',
 
@@ -102,15 +103,16 @@ Please note that entry ids *must* be strings as they are used as keys in object 
 
     // Optional. Classes to add to footer cells in this column. Overrides classes property.
     footerClasses: ['baz'],
-}
+}, …]
 ```
 
 #### columnGroups
 
 **Optional**. An array of column group definitions. Nested column groups (column groups of column groups) are supported.
 
+A column group definition:
 ```javascript
-{
+columnGroups: [{
     // Optional. An id is generated for internal use if none is specified.
     id: 'sampleColumnId',
 
@@ -123,7 +125,7 @@ Please note that entry ids *must* be strings as they are used as keys in object 
         { /* another column group here (id, label, elements) */ },
         'some-other-column-id'
     ]
-}
+}, …]
 ```
 
 #### extensions
