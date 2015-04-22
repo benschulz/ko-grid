@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - "0.12"
+install: npm install
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+after_script:
+  - cat ./build/reports/coverage/sources/*Firefox*/lcov.info | ./node_modules/.bin/coveralls --verbose

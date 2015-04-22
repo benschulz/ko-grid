@@ -2,6 +2,9 @@
   "private": true,
   "name": "ko-grid",
   "version": "0.0.0",
+  "scripts": {
+    "test": "grunt build"
+  },
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-cli": "^0.1.13",
