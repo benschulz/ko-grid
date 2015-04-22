@@ -13,7 +13,7 @@ define(['knockout', 'simulant', '../tester.test'], function (ko, simulant, teste
                         init: element => {
                             var span = window.document.createElement('span');
                             span.className = 'qualifier';
-                            span.appendChild(window.document.createTextNode(''))
+                            span.appendChild(window.document.createTextNode(''));
                             element.appendChild(span);
                         },
                         update: (element, cell, row, column) => {
