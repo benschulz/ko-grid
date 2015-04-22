@@ -138,10 +138,10 @@ define([
         this.onCellClick = onClickDispatcher.registerHandler.bind(onClickDispatcher);
         this.onCellDoubleClick = onDoubleClickDispatcher.registerHandler.bind(onDoubleClickDispatcher);
         this.onCellContextMenu = onContextMenuDispatcher.registerHandler.bind(onContextMenuDispatcher);
-        this['onCellMouseDown '] = this.onCellMouseDown;
-        this['onCellClick '] = this.onCellClick;
-        this['onCellDoubleClick '] = this.onCellDoubleClick;
-        this['onCellContextMenu '] = this.onCellContextMenu;
+        this['onCellMouseDown'] = this.onCellMouseDown;
+        this['onCellClick'] = this.onCellClick;
+        this['onCellDoubleClick'] = this.onCellDoubleClick;
+        this['onCellContextMenu'] = this.onCellContextMenu;
 
         this.__postApplyBindings(inner => {
             inner();

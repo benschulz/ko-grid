@@ -1140,10 +1140,10 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
     this.onCellClick = onClickDispatcher.registerHandler.bind(onClickDispatcher);
     this.onCellDoubleClick = onDoubleClickDispatcher.registerHandler.bind(onDoubleClickDispatcher);
     this.onCellContextMenu = onContextMenuDispatcher.registerHandler.bind(onContextMenuDispatcher);
-    this['onCellMouseDown '] = this.onCellMouseDown;
-    this['onCellClick '] = this.onCellClick;
-    this['onCellDoubleClick '] = this.onCellDoubleClick;
-    this['onCellContextMenu '] = this.onCellContextMenu;
+    this['onCellMouseDown'] = this.onCellMouseDown;
+    this['onCellClick'] = this.onCellClick;
+    this['onCellDoubleClick'] = this.onCellDoubleClick;
+    this['onCellContextMenu'] = this.onCellContextMenu;
     this.__postApplyBindings(function (inner) {
       inner();
       this.__tbodyElement.addEventListener('mousedown', dispatchVia(onMouseDownDispatcher));
@@ -1554,13 +1554,6 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
       ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
         header.element(null);
       });
-      var child = element.firstChild;
-      while (child) {
-        var c = child;
-        if (c.nodeType === Node.TEXT_NODE)
-          ko.removeNode(c);
-        child = child.nextSibling;
-      }
       element.insertBefore(document.createTextNode(''), element.firstChild);
       return { 'controlsDescendantBindings': true };
     },
