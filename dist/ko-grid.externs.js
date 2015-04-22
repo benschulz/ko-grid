@@ -129,6 +129,11 @@ de.benshu.ko.grid.Data.Rows = function () {};
 de.benshu.ko.grid.Data.Rows.prototype.installClassifier = function(classifier) {};
 
 /**
+ * @type {ko.Subscribable<de.benshu.onefold.lists.List<O>>}
+ */
+de.benshu.ko.grid.Data.Rows.prototype.displayed;
+
+/**
  * @type {ko.Subscribable<boolean>}
  */
 de.benshu.ko.grid.Data.Rows.prototype.displayedSynchronized;

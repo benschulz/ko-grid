@@ -308,29 +308,7 @@ ko_grid_application_event_dispatcher = function (js, dom) {
           return originalEvent[p];
         }
       });
-    }.bind(this));  //function ApplicationEvent() {
-                    //    var applicationDefaultPrevented = originalEvent.defaultPrevented;
-                    //
-                    //    js.objects.extend(this, {
-                    //        preventDefault: function () {
-                    //            applicationDefaultPrevented = true;
-                    //            return originalEvent.preventDefault();
-                    //        },
-                    //        preventApplicationButAllowBrowserDefault: function () {
-                    //            applicationDefaultPrevented = true;
-                    //        },
-                    //        get defaultPrevented() {
-                    //            return applicationDefaultPrevented;
-                    //        }
-                    //    });
-                    //}
-                    //
-                    //// While this isn't great performance-wise, copying properties manually
-                    //// probably would not be either. Unless one wrote a special constructor
-                    //// per event type, perhaps.
-                    //ApplicationEvent.prototype = originalEvent;
-                    //
-                    //return new ApplicationEvent();
+    }.bind(this));
   }
   ApplicationEvent.prototype = {
     preventDefault: function () {
@@ -1233,7 +1211,8 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
     }.bind(this);
     this.lookupCell = function (row, column) {
       var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
-      var rowIndex = this.rows.displayed().tryFirstIndexOf(row);
+      // TODO The closure compiler will transform a plain tryFirstIndexOf call. Why?
+      var rowIndex = this.rows.displayed()['tryFirstIndexOf'](row);
       var columnIndex = grid.columns.displayed().indexOf(column);
       var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
       function hijack(override) {
@@ -1337,6 +1316,7 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
     var cell = row[column.property];
     var hijacked = element[HIJACKED_KEY];
     // TODO since there may be thousands of cells we want to keep the dependency count at two (row+cell) => peek => need separate change handler for cellClasses
+    // TODO should setting the className be moved to init?
     var columnClasses = column.cellClasses.peek().join(' ');
     element.className = 'ko-grid-td ko-grid-cell ' + columnClasses;
     var update = hijacked && hijacked.update || column._updateCell || defaultUpdate;
@@ -1419,7 +1399,7 @@ ko_grid_headers = function (ko, js, ApplicationEventDispatcher, headersTemplate)
       this.forColumn = function (column) {
         var id = columnHeaderId(column);
         if (!Object.prototype.hasOwnProperty.call(columnHeaders, id))
-          throw new Error('Es existiert kein Header f\xFCr die gegebene Spalte.');
+          throw new Error('There is no header for the given column.');
         return columnHeaders[id];
       };
       this['forColumn'] = this.forColumn;
@@ -1966,7 +1946,7 @@ ko_grid_binding = function (req, ko, js, ApplicationEventDispatcher) {
       coreComponents.forEach(function (component) {
         component.init(template, config);
       });
-      var extensionConfigs = config['extensions'];
+      var extensionConfigs = config['extensions'] || {};
       var loadedExtensions = [];
       var loadingExtensions = [];
       var loadExtension = function (extensionName) {

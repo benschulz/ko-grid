@@ -217,7 +217,8 @@ define([
 
         this.lookupCell = (row, column) => {
             var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
-            var rowIndex = this.rows.displayed().tryFirstIndexOf(row);
+            // TODO The closure compiler will transform a plain tryFirstIndexOf call. Why?
+            var rowIndex = this.rows.displayed()['tryFirstIndexOf'](row);
             var columnIndex = grid.columns.displayed().indexOf(column);
 
             var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
@@ -333,6 +334,7 @@ define([
         var hijacked = element[HIJACKED_KEY];
 
         // TODO since there may be thousands of cells we want to keep the dependency count at two (row+cell) => peek => need separate change handler for cellClasses
+        // TODO should setting the className be moved to init?
         var columnClasses = column.cellClasses.peek().join(' ');
         element.className = 'ko-grid-td ko-grid-cell ' + columnClasses;
 

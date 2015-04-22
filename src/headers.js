@@ -77,7 +77,7 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
             this.forColumn = column => {
                 var id = columnHeaderId(column);
                 if (!Object.prototype.hasOwnProperty.call(columnHeaders, id))
-                    throw new Error('Es existiert kein Header für die gegebene Spalte.');
+                    throw new Error('There is no header for the given column.');
                 return columnHeaders[id];
             };
             this['forColumn'] = this.forColumn;
@@ -241,13 +241,6 @@ define(['knockout', 'onefold-js', './application-event-dispatcher', 'text!ko-gri
             header.element(element);
             ko.utils.domNodeDisposal.addDisposeCallback(element, () => { header.element(null); });
 
-            var child = element.firstChild;
-            while (child) {
-                var c = child;
-                if (c.nodeType === Node.TEXT_NODE)
-                    ko.removeNode(c);
-                child = child.nextSibling;
-            }
             element.insertBefore(document.createTextNode(''), element.firstChild);
 
             return {'controlsDescendantBindings': true};

@@ -22,30 +22,6 @@ define(['onefold-js', 'onefold-dom'], function (js, dom) {
         properties.forEach(p => Object.defineProperty(this, p, {
             get: function () { return originalEvent[p]; }
         }));
-
-        //function ApplicationEvent() {
-        //    var applicationDefaultPrevented = originalEvent.defaultPrevented;
-        //
-        //    js.objects.extend(this, {
-        //        preventDefault: function () {
-        //            applicationDefaultPrevented = true;
-        //            return originalEvent.preventDefault();
-        //        },
-        //        preventApplicationButAllowBrowserDefault: function () {
-        //            applicationDefaultPrevented = true;
-        //        },
-        //        get defaultPrevented() {
-        //            return applicationDefaultPrevented;
-        //        }
-        //    });
-        //}
-        //
-        //// While this isn't great performance-wise, copying properties manually
-        //// probably would not be either. Unless one wrote a special constructor
-        //// per event type, perhaps.
-        //ApplicationEvent.prototype = originalEvent;
-        //
-        //return new ApplicationEvent();
     }
 
     ApplicationEvent.prototype = {

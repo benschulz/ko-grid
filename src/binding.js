@@ -161,7 +161,7 @@ define([
             var template = new GridTemplate(tableTemplate);
             coreComponents.forEach(function (component) { component.init(template, config); });
 
-            var extensionConfigs = config['extensions'];
+            var extensionConfigs = config['extensions'] || {};
             var loadedExtensions = [];
             var loadingExtensions = [];
             var loadExtension = function (extensionName) {
