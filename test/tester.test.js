@@ -161,6 +161,10 @@ define(['knockout', 'onefold-js', 'ko-data-source', 'ko-grid'], function (ko, js
         this.element = container.querySelector('.ko-grid');
         this.row = rowIndex => new RowInspector(container.querySelector('.ko-grid-row:nth-child(' + (rowIndex + 1) + ')'));
         this.cell = (rowIndex, columnIndex) => this.row(rowIndex).cell(columnIndex);
+
+        js.objects.extend(this, {
+            get rowCount() { return container.querySelectorAll('.ko-grid-row').length; }
+        });
     }
 
     function HeaderInspector(header) {

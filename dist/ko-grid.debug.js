@@ -1156,83 +1156,73 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
   }
   function initElementLookup(grid) {
     var nthRowElement = function (n) {
-      var node = this.__tbodyElement.firstChild;
-      var i = -1;
-      while (node) {
-        if (node.nodeType === ELEMENT_NODE && node.tagName === 'TR' && (' ' + node.className + ' ').indexOf('ko-grid-row') >= 0)
-          if (++i === n)
-            return node;
-        node = node.nextSibling;
-      }
-      throw new Error('Row `' + n + '` does not exist.');
+      var node = this.__tbodyElement.querySelector('tr.ko-grid-row:nth-child(' + (n + 1) + ')');
+      if (!node)
+        throw new Error('Row `' + n + '` does not exist.');
+      return node;
     }.bind(this);
     var nthCellOfRow = function (row, n) {
-      var node = row.firstChild;
-      var i = -1;
-      while (node) {
-        if (node.nodeType === ELEMENT_NODE && node.tagName === 'TD' && (' ' + node.className + ' ').indexOf('td') >= 0)
-          if (++i === n)
-            return node;
-        node = node.nextSibling;
-      }
-      throw new Error('Column `' + n + '` does not exist.');
+      var node = row.children[n];
+      if (!node)
+        throw new Error('Column `' + n + '` does not exist.');
+      return node;
     };
     var hijackCount = 0;
     var hijacks = {};
     this.rows['__handleElementRecycling'] = function (element, bindingContext) {
-      withHijacksOf(element, bindingContext, function (cell, row, column) {
-        cell[HIJACKED_KEY] = null;
+      withHijacksOfRowCells(bindingContext, element, function (hijack, cell, row, column) {
+        hijack.suspend();
         initCellElement(cell, row, column);
       });
     };
     this.rows['__handleElementRecycled'] = function (element, bindingContext) {
-      withHijacksOf(element, bindingContext, function (cell, row, column, hijack) {
-        hijack.element = cell;
-        hijack.row = row;
-        cell[HIJACKED_KEY] = hijack;
+      withHijacksOfRowCells(bindingContext, element, function (hijack, cell, row, column) {
+        hijack.resume(row, cell);
         initCellElement(cell, row, column);
         // TODO This update might have dependencies that won't get tracked.. (same below)
         updateCellElement(cell, row, column);
       });
     };
-    var withHijacksOf = function (rowElement, bindingContext, action) {
+    function withHijacksOfRowCells(bindingContext, rowElement, action) {
+      var row = bindingContext['row']();
+      withHijacksOfRow(row, function (hijack) {
+        var column = hijack.column;
+        var columnIndex = grid.columns.displayed().indexOf(column);
+        var cell = rowElement.children[columnIndex];
+        action(hijack, cell, row, column);
+      });
+    }
+    var withHijacksOfRow = function (row, action) {
       if (!hijackCount)
         return;
-      var row = bindingContext['row']();
       var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
-      if (js.objects.hasOwn(hijacks, rowId)) {
-        hijacks[rowId].forEach(function (hijack) {
-          var column = hijack.column;
-          var columnIndex = grid.columns.displayed().indexOf(column);
-          var cell = rowElement.children[columnIndex];
-          action(cell, row, column, hijack);
-        });
-      }
+      if (js.objects.hasOwn(hijacks, rowId))
+        hijacks[rowId].forEach(action);
     }.bind(this);
+    this.__withHijackOfCell = function (bindingContext, action) {
+      var row = bindingContext['row']();
+      var column = bindingContext['column']();
+      withHijacksOfRow(row, function (hijack) {
+        if (hijack.column === column)
+          action(hijack);
+      });
+    };
     this.lookupCell = function (row, column) {
       var rowId = this.observableValueSelector(ko.unwrap(row[grid.primaryKey]));
       // TODO The closure compiler will transform a plain tryFirstIndexOf call. Why?
       var rowIndex = this.rows.displayed()['tryFirstIndexOf'](row);
       var columnIndex = grid.columns.displayed().indexOf(column);
       var element = nthCellOfRow(nthRowElement(rowIndex), columnIndex);
-      function hijack(override) {
+      function hijackCell(override) {
         if (element[HIJACKED_KEY])
           throw new Error('Illegal state: This cell is already hijacked.');
-        var binding = column._overrideValueBinding(override || function (b) {
-          return b;
-        }, {
+        var binding = column._overrideValueBinding(override, {
           init: column._initCell || defaultInit,
           update: column._updateCell || defaultUpdate
         });
-        var hijacked = element[HIJACKED_KEY] = {
-          element: element,
-          row: row,
-          column: column,
-          init: binding.init,
-          update: binding.update
-        };
+        var hijack = element[HIJACKED_KEY] = new Hijack(element, row, column, binding);
         var rowHijacks = hijacks[rowId] = hijacks[rowId] || [];
-        rowHijacks.push(hijacked);
+        rowHijacks.push(hijack);
         ++hijackCount;
         initCellElement(element, row, column);
         updateCellElement(element, row, column);
@@ -1240,15 +1230,15 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
           if (rowHijacks.length === 1)
             delete hijacks[rowId];
           else
-            rowHijacks.splice(rowHijacks.indexOf(hijacked), 1);
+            rowHijacks.splice(rowHijacks.indexOf(hijack), 1);
           --hijackCount;
-          if (hijacked.element[HIJACKED_KEY] !== hijacked)
-            return;
-          // the element was recycled for another entry
-          hijacked.element[HIJACKED_KEY] = null;
-          initCellElement(hijacked.element, hijacked.row, hijacked.column);
-          // TODO This update might have dependencies that won't get tracked.. (same above)
-          updateCellElement(hijacked.element, hijacked.row, hijacked.column);
+          if (!hijack.suspended) {
+            var e = hijack.element, r = hijack.row, c = hijack.column;
+            hijack.suspend();
+            initCellElement(e, r, c);
+            // TODO This update might have dependencies that won't get tracked.. (same above)
+            updateCellElement(e, r, c);
+          }
         }
         return js.objects.extend({
           release: release,
@@ -1260,16 +1250,38 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
       }
       return js.objects.extend({
         element: element,
-        hijack: hijack
+        hijack: hijackCell
       }, {
         'element': element,
-        'hijack': hijack
+        'hijack': hijackCell
       });
     }.bind(this);
     this['lookupCell'] = this.lookupCell;
     return function () {
     };
   }
+  /** @constructor */
+  function Hijack(element, row, column, binding) {
+    this.element = element;
+    this.row = row;
+    this.column = column;
+    this.init = binding.init;
+    this.update = binding.update;
+  }
+  Hijack.prototype = {
+    get suspended() {
+      return this.element === null;
+    },
+    resume: function (row, element) {
+      this.element = element;
+      this.row = row;
+      element[HIJACKED_KEY] = this;
+    },
+    suspend: function () {
+      this.element[HIJACKED_KEY] = null;
+      this.element = null;
+    }
+  };
   ko.bindingHandlers['__gridRow'] = {
     'init': function () {
     },
@@ -1292,9 +1304,12 @@ ko_grid_data = function (ko, js, stringifyable, ApplicationEventDispatcher, data
     }
   };
   ko.bindingHandlers['__gridCell'] = {
-    'init': function (element, valueAccessor) {
-      var value = valueAccessor();
-      initCellElement(element, value['row'], value['column']());
+    'init': function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+      var value = valueAccessor(), row = value['row'], column = value['column'];
+      bindingContext['grid'].data.__withHijackOfCell(bindingContext, function (hijack) {
+        return hijack.resume(row(), element);
+      });
+      initCellElement(element, row, column());
       return { 'controlsDescendantBindings': true };
     },
     'update': function (element, valueAccessor) {

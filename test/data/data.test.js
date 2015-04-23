@@ -3,7 +3,9 @@
 define([
     './basic.test',
     './cell-hijacking.test',
-    './event-dispatching.test'
+    './cell-lookup.test',
+    './event-dispatching.test',
+    './row-classification.test'
 ], function () {
     var tests = Array.prototype.slice.call(arguments);
 
