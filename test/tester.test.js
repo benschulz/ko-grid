@@ -73,8 +73,8 @@ define(['knockout', 'onefold-js', 'ko-data-source', 'ko-grid'], function (ko, js
             config: defineTestConfig('empty-test-config', {})
         });
 
-        return merge(inserter(implicitConfiguration), {
-            config: config => inserter(merge(partialConfiguration, {
+        return merge(extensionsPreparator(implicitConfiguration), {
+            config: config => extensionsPreparator(merge(partialConfiguration, {
                 config: defineAnonymousTestConfig(config)
             }))
         });
@@ -89,6 +89,14 @@ define(['knockout', 'onefold-js', 'ko-data-source', 'ko-grid'], function (ko, js
     function defineTestConfig(id, config) {
         define(id, [], config);
         return id;
+    }
+
+    function extensionsPreparator(partialConfiguration) {
+        return merge(inserter(partialConfiguration), {
+            extensions: extensions => inserter(merge(partialConfiguration, {
+                extensions: extensions
+            }))
+        });
     }
 
     function inserter(configuration) {
@@ -107,7 +115,8 @@ define(['knockout', 'onefold-js', 'ko-data-source', 'ko-grid'], function (ko, js
                             dataSource: configuration.dataSource,
                             primaryKey: configuration.primaryKey,
                             columns: configuration.columns,
-                            columnGroups: configuration.columnGroups
+                            columnGroups: configuration.columnGroups,
+                            extensions: configuration.extensions
                         }
                     });
 

@@ -7,6 +7,7 @@ require(['require'], function (require) {
 
     require([
         'data/data.test',
+        'extensions/extensions.test',
         'headers/headers.test'
     ], function () {
         Array.prototype.slice.call(arguments).forEach(test => test());
