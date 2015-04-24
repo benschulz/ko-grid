@@ -1201,14 +1201,14 @@ ko_grid_extensions = function (ko, js) {
       throw new Error('No known extension id or alias: `' + extensionId + '`.');
     return extensions[extensionId];
   }
-  grid.defineExtension = function (name, spec) {
+  grid['defineExtension'] = grid.defineExtension = function (name, spec) {
     return registerExtension(name, new GridExtension(name, spec));
   };
   grid.lookUpExtension = lookUpExtension;
-  grid.declareExtensionAlias = function (alias, alreadyKnownAlias) {
+  grid['declareExtensionAlias'] = grid.declareExtensionAlias = function (alias, alreadyKnownAlias) {
     return registerExtension(alias, grid.lookUpExtension(alreadyKnownAlias));
   };
-  grid.declareExtensionAliases = function (aliases, alreadyKnownAlias) {
+  grid['declareExtensionAliases'] = grid.declareExtensionAliases = function (aliases, alreadyKnownAlias) {
     var extension = grid.lookUpExtension(alreadyKnownAlias);
     aliases.forEach(function (a) {
       return registerExtension(a, extension);
@@ -1218,10 +1218,10 @@ ko_grid_extensions = function (ko, js) {
   /** @constructor */
   function GridExtension(primaryName, spec) {
     this.primaryName = primaryName;
-    this.dependencies = spec.dependencies || [];
-    this.initializer = spec.initializer || function () {
+    this.dependencies = spec['dependencies'] || spec.dependencies || [];
+    this.initializer = spec['initializer'] || spec.initializer || function () {
     };
-    this.Constructor = spec.Constructor;
+    this.Constructor = spec['Constructor'] || spec.Constructor;
     this.__knownAliases = [];
   }
   GridExtension.prototype = {
@@ -1306,6 +1306,7 @@ ko_grid_binding = function (req, ko, js, ApplicationEventDispatcher) {
         callback();
       };
     }.bind(this);
+    this['postApplyBindings'] = this.postApplyBindings;
     var onKeyDownDispatcher = new ApplicationEventDispatcher();
     this.onKeyDown = onKeyDownDispatcher.registerHandler.bind(onKeyDownDispatcher);
     this['onKeyDown '] = this.onKeyDown;

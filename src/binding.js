@@ -50,6 +50,7 @@ define([
                 callback();
             };
         };
+        this['postApplyBindings'] = this.postApplyBindings;
 
         var onKeyDownDispatcher = new ApplicationEventDispatcher();
         this.onKeyDown = onKeyDownDispatcher.registerHandler.bind(onKeyDownDispatcher);

@@ -18,12 +18,12 @@ define(['knockout', 'onefold-js'], function (ko, js) {
         return extensions[extensionId];
     }
 
-    grid.defineExtension = (name, spec) => registerExtension(name, new GridExtension(name, spec));
+    grid['defineExtension'] = grid.defineExtension = (name, spec) => registerExtension(name, new GridExtension(name, spec));
 
     grid.lookUpExtension = lookUpExtension;
 
-    grid.declareExtensionAlias = (alias, alreadyKnownAlias) => registerExtension(alias, grid.lookUpExtension(alreadyKnownAlias));
-    grid.declareExtensionAliases = (aliases, alreadyKnownAlias) => {
+    grid['declareExtensionAlias'] = grid.declareExtensionAlias = (alias, alreadyKnownAlias) => registerExtension(alias, grid.lookUpExtension(alreadyKnownAlias));
+    grid['declareExtensionAliases'] = grid.declareExtensionAliases = (aliases, alreadyKnownAlias) => {
         var extension = grid.lookUpExtension(alreadyKnownAlias);
         aliases.forEach(a => registerExtension(a, extension));
         return extension;
@@ -32,9 +32,9 @@ define(['knockout', 'onefold-js'], function (ko, js) {
     /** @constructor */
     function GridExtension(primaryName, spec) {
         this.primaryName = primaryName;
-        this.dependencies = spec.dependencies || [];
-        this.initializer = spec.initializer || (() => {});
-        this.Constructor = spec.Constructor;
+        this.dependencies = spec['dependencies'] || spec.dependencies || [];
+        this.initializer = spec['initializer'] || spec.initializer || (() => {});
+        this.Constructor = spec['Constructor'] || spec.Constructor;
 
         this.__knownAliases = [];
     }
