@@ -4,15 +4,19 @@ define(['knockout', 'ko-grid', '../tester.test'], function (ko, koGrid, tester) 
     return () => {
         describe('constructor: ', () => {
 
-            function testConstructor(extensionId, Constructor, configuration, bindingValue) {
+            function testConstructor(extensionId, Constructor, config, bindingValue) {
                 koGrid.defineExtension(extensionId, {
                     Constructor: Constructor
                 });
 
+                var configExtensions = {}, bindingValueExtensions = {};
+                configExtensions[extensionId] = config || {};
+                bindingValueExtensions[extensionId] = bindingValue || {};
+
                 tester
                     .for([]).columns([])
-                    .config({extensions: {[extensionId]: configuration || {}}})
-                    .extensions({[extensionId]: bindingValue || {}})
+                    .config({extensions: configExtensions})
+                    .extensions(bindingValueExtensions)
                     .insert.anywhere();
             }
 
