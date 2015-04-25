@@ -173,15 +173,12 @@ define([
                 if (js.arrays.contains(loadedExtensions, primaryExtensionName))
                     return;
                 if (js.arrays.contains(loadingExtensions, primaryExtensionName))
-                    throw new Error('Dependency-Cycle: .. -> ' + loadingExtensions.join(' -> ') + ' -> ' + primaryExtensionName + ' -> ..');
+                    throw new Error('Dependency cycle: .. -> ' + loadingExtensions.join(' -> ') + ' -> ' + primaryExtensionName + ' -> ..');
 
                 loadingExtensions.push(primaryExtensionName);
                 extension.dependencies.forEach(loadExtension);
                 extension.initializer(template, extensionConfig, config);
-
-                if (loadingExtensions.pop() !== primaryExtensionName)
-                    throw new Error('Assertion error.');
-                loadedExtensions.push(primaryExtensionName);
+                loadedExtensions.push(loadingExtensions.pop());
             };
             Object.keys(extensionConfigs).forEach(loadExtension);
 
