@@ -2,7 +2,7 @@
 
 The ko-grid is an extensible UI component for displaying tabular data. It is [knockout](http://knockoutjs.com/)-based and its binding name is simply `grid`.
 
-If you want to look at ko-grid in action, you can look at some [live examples](http://benschulz.github.io/ko-grid-examples/). The corresponding sources are in a [separate repository](https://github.com/benschulz/ko-grid-examples).
+If you want to look at ko-grid in action, you can look at some [live examples](http://benschulz.github.io/ko-grid-examples/). The corresponding sources are in a [separate repository](https://github.com/benschulz/ko-grid-examples). To get started, have a look at [src/sscces](https://github.com/benschulz/ko-grid-examples/tree/master/src/sscces) for short, self-contained examples.
 
 ## Features
 
