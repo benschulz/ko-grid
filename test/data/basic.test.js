@@ -44,7 +44,7 @@ define(['knockout', '../tester.test'], function (ko, tester) {
                     .then(inspector => {
                         var incrementalStepObserved = false;
                         inspector.grid.data.rows.displayedSynchronized.subscribe(sync => {
-                            expect(sync).to.equals(inspector.rowCount === rowCount);
+                            expect(!sync || inspector.rowCount === rowCount).to.be.true;
 
                             incrementalStepObserved = incrementalStepObserved || !sync;
                             if (sync && incrementalStepObserved)

@@ -1218,10 +1218,10 @@ ko_grid_extensions = function (ko, js) {
   /** @constructor */
   function GridExtension(primaryName, spec) {
     this.primaryName = primaryName;
-    this.dependencies = spec['dependencies'] || spec.dependencies || [];
-    this.initializer = spec['initializer'] || spec.initializer || function () {
+    this.dependencies = spec['dependencies'] || [];
+    this.initializer = spec['initializer'] || function () {
     };
-    this.Constructor = spec['Constructor'] || spec.Constructor;
+    this.Constructor = spec['Constructor'];
     this.__knownAliases = [];
   }
   GridExtension.prototype = {

@@ -1,6 +1,8 @@
 'use strict';
 
 define([
+    './aliases.test',
+    './basic.test',
     './constructor.test',
     './dependencies.test'
 ], function () {
