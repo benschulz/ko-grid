@@ -6,6 +6,7 @@ require(['require'], function (require) {
     window.expect = window.chai.expect;
 
     require([
+        'columns/columns.test',
         'data/data.test',
         'extensions/extensions.test',
         'headers/headers.test'

@@ -15,8 +15,6 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
                 return column;
             }
 
-            var disposables = [];
-
             this.all = ko.observableArray(bindingValue['columns'].map(createColumn));
             this['all'] = this.all;
 
@@ -97,10 +95,6 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
                 return viewModel;
             };
             this['add'] = this.add;
-
-            this._dispose = () => {
-                disposables.forEach(disposable => { disposable.dispose(); });
-            };
         }
     };
 
@@ -123,7 +117,7 @@ define(['knockout', 'onefold-js', 'text!ko-grid/columns.html.template'], functio
         this['userDefined'] = this.userDefined;
         this.__visible = !column['hidden'];
         this.visible = () => this.__visible;
-        this['visible'] = this['visible'];
+        this['visible'] = this.visible;
         this.label = ko.observable(column['label']);
         this['label'] = this.label;
         this.width = ko.observable(column['width']);

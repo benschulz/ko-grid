@@ -282,7 +282,6 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
           gridConfig['columnInitializer'](column);
         return column;
       }
-      var disposables = [];
       this.all = ko.observableArray(bindingValue['columns'].map(createColumn));
       this['all'] = this.all;
       this.byId = function (id) {
@@ -371,11 +370,6 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
         return viewModel;
       }.bind(this);
       this['add'] = this.add;
-      this._dispose = function () {
-        disposables.forEach(function (disposable) {
-          disposable.dispose();
-        });
-      };
     }
   };
   ko.bindingHandlers['__gridColumn'] = {
@@ -398,7 +392,7 @@ ko_grid_columns = function (ko, js, columnsTemplate) {
     this.visible = function () {
       return this.__visible;
     }.bind(this);
-    this['visible'] = this['visible'];
+    this['visible'] = this.visible;
     this.label = ko.observable(column['label']);
     this['label'] = this.label;
     this.width = ko.observable(column['width']);
