@@ -9,7 +9,8 @@ require(['require'], function (require) {
         'columns/columns.test',
         'data/data.test',
         'extensions/extensions.test',
-        'headers/headers.test'
+        'headers/headers.test',
+        'layout/layout.test'
     ], function () {
         Array.prototype.slice.call(arguments).forEach(test => test());
 
