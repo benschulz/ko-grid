@@ -1689,10 +1689,8 @@ ko_grid_layout = function (ko) {
         beforeRelayoutHandlers.forEach(function (h) {
           h.call(gridElement);
         });
-        withElementLayedOut(gridElement, function () {
-          updateHeaderHeight(thead.clientHeight);
-          updateFooterHeight(tfoot.clientHeight);
-        });
+        updateHeaderHeight(thead.clientHeight);
+        updateFooterHeight(tfoot.clientHeight);
         scroller.scrollLeft = scrollLeftBeforeRecalculation;
         afterRelayoutHandlers.forEach(function (h) {
           h.call(gridElement);
@@ -1703,25 +1701,6 @@ ko_grid_layout = function (ko) {
       }
     };
   };
-  function withElementLayedOut(element, action) {
-    // This is a quick check to see if the element is layed out.
-    if (element.offsetWidth && element.offsetHeight)
-      return action();
-    var parent = element.parentNode;
-    var placeholder = document.createComment('placeholder');
-    parent.replaceChild(placeholder, element);
-    var positionBackup = element.style.position;
-    element.style.position = 'absolute';
-    element.style.visibility = 'hidden';
-    document.body.appendChild(element);
-    try {
-      return action();
-    } finally {
-      parent.replaceChild(element, placeholder);
-      element.style.position = positionBackup;
-      element.style.visibility = 'visible';
-    }
-  }
   return layout;
 }(knockout);
 
