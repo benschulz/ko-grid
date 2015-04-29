@@ -1,7 +1,8 @@
 'use strict';
 
 define([
-    './basic.test'
+    './basic.test',
+    './event-dispatching.test'
 ], function () {
     var tests = Array.prototype.slice.call(arguments);
 
