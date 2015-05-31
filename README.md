@@ -36,10 +36,11 @@ The ko-grid component itself is only a base to be built upon. As such it provide
 The following extensions don't provide user-oriented features directly, but rather through other extensions listed above.
 
  - [**column-sizing**](https://github.com/benschulz/ko-grid-column-sizing). Defines which columns are resizable and which aren't.
- - [**resize-detection**](https://github.com/benschulz/ko-grid-resize-detection). Detects when the grids container was resized and triggers a relayout.
- - [**toolbar**](https://github.com/benschulz/ko-grid-toolbar). Displays a grid toolbar to be filled by other extensions.
+ - [**resize-detection**](https://github.com/benschulz/ko-grid-resize-detection). Detects when the grid's container was resized and triggers a relayout.
+ - [**toolbar**](https://github.com/benschulz/ko-grid-toolbar). Displays a grid toolbar to be populated by other extensions.
  - [**view-modes**](https://github.com/benschulz/ko-grid-view-modes). Keeps track of the view mode(s) the grid is currently in (e.g. full-screen mode).
  - [**view-state-storage**](https://github.com/benschulz/ko-grid-view-state-storage). Persists view state information in (by default) the `localStorage` to be restored later.
+ - [**visibility-detection**](https://github.com/benschulz/ko-grid-visibility-detection). Detects when the grid's visibility changes and triggers a relayout.
 
 ## Requirements
 
