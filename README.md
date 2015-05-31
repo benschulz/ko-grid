@@ -45,7 +45,7 @@ The following extensions don't provide user-oriented features directly, but rath
 
 **Libraries**. There are no library dependencies other than knockout. (jQuery is *not* required.)
 
-**Bindings**. The ko-grid depends on another binding, called [`indexedRepeat`](https://github.com/benschulz/ko-grid). It is included in the [ko-grid-bundle](https://github.com/benschulz/ko-grid-bundle), if you chose to use that.
+**Bindings**. The ko-grid depends on another binding, called [`indexedRepeat`](https://github.com/benschulz/ko-indexed-repeat). It is included in the [ko-grid-bundle](https://github.com/benschulz/ko-grid-bundle), if you chose to use that.
 
 **Browser**. The ko-grid component is targeted at evergreen browsers. That means any up-to-date Firefox, Chromium or Safari is supported. Internet Explorer 11 is supported as well, for Internet Explorer 10 you need to provide a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) polyfill.
 
